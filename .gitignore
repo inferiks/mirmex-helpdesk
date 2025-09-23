@@ -1,1 +1,44 @@
-/venv
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environment
+venv/
+.env
+
+# Django
+*.sqlite3
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest / coverage
+htmlcov/
+.coverage
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Byte-compiled / cache
+*.egg-info/
+*.egg
+*.pyc
+*.pyo
+
+# Migrations
+*/migrations/*.pyc
+*/migrations/*.py
+*/migrations/__pycache__/
