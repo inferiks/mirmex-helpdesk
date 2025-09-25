@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h1>Список заявок</h1>
+<a href="{% url 'ticket_create' %}">Создать заявку</a>
+<ul>
+    {% for ticket in object_list %}
+    <li>
+        <a href="{% url 'ticket_detail' ticket.id %}">{{ ticket.title }}</a>
+        - {{ ticket.status }}
+    </li>
+    {% empty %}
+        <li>Заявок нет</li>
+    {% endfor %}
+</ul>
+{% endblock %}
