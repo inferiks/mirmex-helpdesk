@@ -1,10 +1,13 @@
+{% load static %}
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mirmex — Офисные ПК и сервис</title>
+  <title>{{ project_name|default:"Mirmex" }} — Офисные ПК и сервис</title>
+
   <style>
+    /* --- Стилистика (взята из твоего шаблона и немного подправлена) --- */
     :root{
       --accent:#0b6efd;
       --dark:#0f1723;
@@ -42,6 +45,7 @@
     .hero-img{width:100%;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,35,0.06)}
     .cta-large{font-size:18px;padding:14px 20px;width:100%;border-radius:10px}
     @media (max-width:900px){ .hero{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr} }
+    /* небольшая утилита для красного текста ошибок */
     .error{color:#b91c1c;margin-bottom:10px}
   </style>
 </head>
@@ -51,10 +55,11 @@
       <div class="brand">
         <div class="logo">PC</div>
         <div>
-          <h1>Mirmex</h1>
+          <h1>{{ company_name|default:"Mirmex" }}</h1>
           <p>Комплектуем офисы компьютерами и сервисом</p>
         </div>
       </div>
+
       <nav class="nav">
         <a class="ghost" href="#features">Продукт</a>
         <a class="ghost" href="#cases">Кейсы</a>
@@ -63,48 +68,69 @@
       </nav>
     </header>
 
-    <section class="hero">
-      <div class="card">
-        <h1>Офисные ПК под ключ — подбор, настройка и сервис для вашей компании</h1>
+    <!-- === ПЕРВЫЙ ЭКРАН === -->
+    <section class="hero" role="main" aria-labelledby="hero-title">
+      <!-- Левая часть: заголовки, УТП, буллиты, большая картинка -->
+      <div class="card" style="position:relative;">
+        <!-- Синхронный заголовок -->
+        <h1 id="hero-title">Офисные ПК под ключ — подбор, настройка и сервис для вашей компании</h1>
+        <!-- Продающий заголовок / УТП -->
         <h2>Мы подбираем, собираем и поддерживаем рабочие места — 24 месяца гарантии и SLA-поддержка</h2>
+
+        <!-- Блок с описанием и тезисами -->
         <p class="small">Быстро, прозрачно и под конкретные задачи отдела: бухгалтерия, HR, дизайн, разработка.</p>
-        <div class="features" id="features">
+        <div class="features" id="features" style="margin-top:12px">
           <div class="feature">💻 Конфигурация под задачи</div>
           <div class="feature">🚚 Доставка и монтаж</div>
           <div class="feature">🧰 Сервис с гарантией</div>
           <div class="feature">🔒 Настройка безопасности</div>
         </div>
+
         <div style="margin-top:18px;text-align:center">
-          <img class="hero-img" src="images/empty_startup_office.jpg" alt="Пустой офис перед установкой оборудования" />
+          <img class="hero-img" src="{% static 'images/empty_startup_office.jpg' %}" alt="Пустой офис перед установкой оборудования" />
         </div>
-        <div id="faq" class="card-sm">
+
+        <!-- Гарантии / FAQ -->
+        <div id="faq" style="margin-top:18px" class="card-sm">
           <h3>Гарантии и ответы на частые вопросы</h3>
-          <p><strong>— Что если техника выйдет из строя?</strong><br>Инженер выезжает в течение 24 часов. При необходимости — временная замена.</p>
-          <p><strong>— Нужна ли предоплата?</strong><br>Стандартно 30% при подтверждении заказа, остальное по факту поставки.</p>
-          <p><strong>— Есть ли поддержка после установки?</strong><br>Да — пакет поддержки включён в договор обслуживания.</p>
+          <p><strong>— Что если техника выйдет из строя?</strong><br>
+             В рамках SLA инженер выезжает в течение 24 часов. При необходимости — временная замена.</p>
+          <p><strong>— Нужна ли предоплата?</strong><br>
+             Стандартно 30% при подтверждении заказа, остальное по факту поставки.</p>
+          <p><strong>— Есть ли поддержка после установки?</strong><br>
+             Да — пакет поддержки включён в договор обслуживания.</p>
         </div>
       </div>
 
+      <!-- Правая часть: форма входа и лид-форма (царь-кнопка) -->
       <aside style="display:flex;flex-direction:column;gap:12px">
+        <!-- форма логина (Django LoginView) -->
         <div class="lead-form card">
           <h3>Вход в личный кабинет</h3>
-          <div class="error" style="display:none;">Неверное имя пользователя или пароль.</div>
-          <form method="post" action="#">
-            <label>Имя пользователя</label>
-            <input type="text" name="username" placeholder="Логин" required>
-            <label>Пароль</label>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <button class="btn cta-large" type="submit">Войти</button>
+
+          {% if form.errors %}
+            <div class="error">Неверное имя пользователя или пароль.</div>
+          {% endif %}
+
+          <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="btn" type="submit" style="width:100%;">Войти</button>
           </form>
-          <p class="small" style="margin-top:8px;">Нет аккаунта? Получите коммерческое предложение — бесплатно и без обязательств.</p>
+
+          <p class="small" style="margin-top:8px;">Нет аккаунта? <a href="#lead">Получите коммерческое предложение</a> — бесплатно и без обязательств.</p>
         </div>
 
-        <div class="lead-form card" id="lead">
+        <div class="lead-form card" id="lead" aria-label="Форма получения коммерческого предложения">
           <h3>Быстрый подбор и КП</h3>
           <p class="small">Оставьте данные — мы подготовим коммерческое предложение и конфигурацию под ваш бюджет.</p>
-          <form method="post" action="#">
+
+          <form method="post" action="{% url 'ticket_create' %}">
+            {% csrf_token %}
             <label for="company">Название компании</label>
             <input id="company" name="company" placeholder="ООО «Рога и Копыта»" required />
+
             <label for="size">Кол-во рабочих мест</label>
             <select id="size" name="size">
               <option value="1-5">1–5</option>
@@ -112,14 +138,20 @@
               <option value="21-100">21–100</option>
               <option value=">100">100+</option>
             </select>
+
             <label for="contact">Контакт email</label>
             <input id="contact" name="contact" placeholder="email@company.com" required />
-            <div style="margin-top:8px">
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <!-- Царь-кнопка -->
               <button class="btn cta-large" type="submit">Получить коммерческое предложение</button>
             </div>
+
+            <p class="small" style="margin-top:10px">Или: <a href="tel:+74951234567">заказать звонок</a></p>
           </form>
         </div>
 
+        <!-- Блок кейсов для доверия -->
         <div class="card-sm">
           <h3>Кейсы</h3>
           <p class="small">IT-стартап — 12 мест; Бухгалтерия — 30 мест; Колл-центр — 80 мест.</p>
@@ -127,6 +159,7 @@
       </aside>
     </section>
 
+    <!-- подробности / преимущества -->
     <section style="margin-top:18px">
       <div class="grid-3">
         <div class="card-sm"><h3>Установка ПО</h3><p class="small">Стандартный пакет: офисный софт, антивирус, бэкап.</p></div>
@@ -136,9 +169,26 @@
     </section>
 
     <footer id="contacts" style="margin-top:22px">
-      <div>© 2025 Mirmex — Комплектация и сервис</div>
-      <div><a href="#">Политика конфиденциальности</a> · <a href="#">Контакты</a></div>
+      <div>© {% now "Y" %} {{ company_name|default:"Mirmex" }} — Комплектация и сервис</div>
+      <div>
+        <a href="#">Политика конфиденциальности</a> · <a href="#">Контакты</a>
+      </div>
     </footer>
   </div>
+
+  {% block analytics %}
+  <!-- Блок для аналитик -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const cta = document.querySelector('.cta-large');
+      if(cta){
+        cta.addEventListener('click', function(){
+          try { console.log('CTA clicked: lead'); } catch(e){}
+        });
+      }
+    });
+  </script>
+  {% endblock %}
+
 </body>
 </html>
