@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h2>Список оборудования</h2>
+<u1>
+    {% for eq in object_list %}
+        <li>
+            <a href="{% url 'equipment_detail' eq.id %}">
+                {{ eq.model }} {{veq.serial }}
+            </a> — {{ eq.get_status_display }}
+        </li>
+    {% empty %}
+        <li>оборудование добавлено</li>
+    {% endfor %}
+</ui>
+{% endblock %}

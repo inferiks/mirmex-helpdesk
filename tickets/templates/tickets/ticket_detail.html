@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h2>{{ object.title }}</h2>
+<p><b>Описание:</b> {{ object.description }}</p>
+<p><b>Статус:</b> {{ object.get_status_display }}</p>
+<p><b>Создана:</b> {{ object.created_at }}</p>
+{% if object.equipment %}
+<p><b>Оборудование:</b> {{ object.equipment.model }} ({{ object.equipment.serial }})</p>
+{% endif %}
+{% if object.technician %}
+<p><b>Назначен техник:</b> {{ object.technician.username }}</p>
+{% else %}
+<p><b>Техник не назначен</b></p>
+{% endif %}
+{% endblock %}

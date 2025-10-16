@@ -1,0 +1,8 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h2>оборудование: {{ object.model }}</h2>
+<p><b>Серийный номер:</b> {{ object.serial }}</p>
+<p><b>Расположение:</b> {{ object.location }}</p>
+<p><b>Статус:</b> {{ object.get_status_display }}</p>
+{% endblock %}
