@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 User = get_user_model()
 
 class Equipment(models.Model):
@@ -32,6 +33,13 @@ class Tickets(models.Model):
         (STATUS_IN_PROGRESS, 'В работе'),
         (STATUS_CLOSED, 'Закрыта'),
     ]
+
+    ALLOWED_TRANSITIONS = {
+        STATUS_NEW: [STATUS_ASSIGNED, STATUS_CLOSED],
+        STATUS_ASSIGNED: [STATUS_IN_PROGRESS, STATUS_CLOSED],
+        STATUS_IN_PROGRESS: [STATUS_CLOSED],
+        STATUS_CLOSED: [],
+    }
 
     equipment = models.ForeignKey(
         Equipment,
@@ -72,23 +80,37 @@ class Tickets(models.Model):
         ]
 
     def assign(self, technician):
+        if not technician:
+            raise ValidationError("Не указан техник")
+        
         self.technician = technician
-        self.status = self.STATUS_ASSIGNED
-        self.save(update_fields=['technician', 'status'])
+        self.change_status(self.STATUS_ASSIGNED)
+        self.save(update_fields=['technician', 'status', 'closed_at'])
 
+        
     def start_work(self):
-        self.status = self.STATUS_IN_PROGRESS
-        self.save(update_fields=['status'])
+        if not self.technician:
+            raise ValidationError("Нельзя начать работу без техника")
+        
+        self.change_status(self.STATUS_IN_PROGRESS)
+
+    def change_status(self, new_status):
+        allowed = self.ALLOWED_TRANSITIONS.get(self.status, [])
+        if new_status not in allowed:
+            raise ValidationError(
+                f"недопустимый переход: {self.status} → {new_status}"
+            )
+            
+        self.status = new_status
+        
+        if new_status == self.STATUS_CLOSED and self.closed_at is None:
+            self.closed_at = timezone.now()
+
+
+        self.save()
 
     def close(self):
-        self.status = self.STATUS_CLOSED
-        self.closed_at = timezone.now()
-        self.save(update_fields=['status', 'closed_at'])
-
-    def save(self, *args, **kwargs):
-        if self.status == self.STATUS_CLOSED and self.closed_at is None:
-            self.closed_at = timezone.now()
-        super().save(*args, **kwargs)
+        self.change_status(self.STATUS_CLOSED)
 
     def __str__(self):
         return f"{self.title} #{self.pk}"

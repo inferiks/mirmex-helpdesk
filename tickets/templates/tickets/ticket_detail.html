@@ -5,12 +5,38 @@
 <p><b>Описание:</b> {{ object.description }}</p>
 <p><b>Статус:</b> {{ object.get_status_display }}</p>
 <p><b>Создана:</b> {{ object.created_at }}</p>
+
 {% if object.equipment %}
 <p><b>Оборудование:</b> {{ object.equipment.model }} ({{ object.equipment.serial }})</p>
 {% endif %}
+
 {% if object.technician %}
 <p><b>Назначен техник:</b> {{ object.technician.username }}</p>
 {% else %}
 <p><b>Техник не назначен</b></p>
 {% endif %}
+
+{# Кнопка прямого редактирования - только для суперпользователя #}
+{% if can_edit_directly %}
+    <a href="{% url 'ticket_update' object.pk %}">Редактировать напрямую (Админ)</a>
+    <br><br>
+{% endif %}
+
+{# Назначение техника #}
+{% if can_assign and object.status == 'new' %}
+    <a href="{% url 'ticket_assign' object.pk %}">Назначить техника</a>
+{% endif %}
+
+{# Взять в работу #}
+{% if can_change_status and object.status == 'assigned' and object.technician == user %}
+    <a href="{% url 'ticket_start' object.pk %}">Взять в работу</a>
+{% endif %}
+
+{# Закрыть тикет #}
+{% if can_change_status %}
+    {% if object.status != 'closed' %}
+        <a href="{% url 'ticket_close' object.pk %}">Закрыть тикет</a>
+    {% endif %}
+{% endif %}
+
 {% endblock %}
