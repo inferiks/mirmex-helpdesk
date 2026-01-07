@@ -70,6 +70,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mirmex_site.wsgi.application"
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
