@@ -30,6 +30,11 @@ class EquipmentListView(LoginRequiredMixin, ListView):
 class EquipmentDetailView(LoginRequiredMixin, DetailView):
     model = Equipment
     template_name = 'tickets/equipment_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_ticket_count'] = self.object.tickets.exclude(status='closed').count()
+        return context
    
 # Tickets 
 class TicketListView(LoginRequiredMixin, ListView):
@@ -39,13 +44,48 @@ class TicketListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
+        # Базовый queryset в зависимости от роли
         if is_admin_or_dispatcher(user):
-            return Tickets.objects.all()
-
-        if is_technician(user):
-            return Tickets.objects.filter(technician=user)
-
-        return Tickets.objects.filter(reporter=user)
+            queryset = Tickets.objects.all()
+        elif is_technician(user):
+            queryset = Tickets.objects.filter(technician=user)
+        else:
+            queryset = Tickets.objects.filter(reporter=user)
+        
+        # Фильтрация по статусу
+        status_filter = self.request.GET.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        return queryset.order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Базовый queryset для статистики
+        if is_admin_or_dispatcher(user):
+            base_queryset = Tickets.objects.all()
+        elif is_technician(user):
+            base_queryset = Tickets.objects.filter(technician=user)
+        else:
+            base_queryset = Tickets.objects.filter(reporter=user)
+        
+        context['is_admin_or_dispatcher'] = is_admin_or_dispatcher(user)
+        
+        context['count_new'] = base_queryset.filter(status='new').count()
+        context['count_assigned'] = base_queryset.filter(status='assigned').count()
+        context['count_in_progress'] = base_queryset.filter(status='in_progress').count()
+        context['count_closed'] = base_queryset.filter(status='closed').count()
+        
+        # Информация о текущем фильтре
+        status_filter = self.request.GET.get('status')
+        if status_filter:
+            context['current_status'] = status_filter
+            status_dict = dict(Tickets.STATUS_CHOICES)
+            context['current_status_display'] = status_dict.get(status_filter, '')
+        
+        return context
 
     
 class TicketDetailView(LoginRequiredMixin, DetailView):
@@ -71,7 +111,6 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
             is_admin_or_dispatcher(self.request.user) or
             is_technician(self.request.user)
         )
-        # Добавляем флаг для показа кнопки редактирования
         context['can_edit_directly'] = self.request.user.is_superuser
         return context
 

@@ -1,27 +1,140 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mirmex HelpDesk{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header>
-        <h1>Mirmex HelpDesk</h1>
-        {% if user.is_authenticated %}
-            <p>Привет, {{ user.username }} | <a href="/admin/logout/">Выйти</a></p>
-        {% else %}
-            <a href="/admin/login/">Войти</a>
-        {% endif %}
-        <nav>
-            <a href="{% url 'equipment_list' %}">Оборудование</a> |
-            <a href="{% url 'ticket_list' %}">Заявки</a>
-        </nav>
-        <hr>
-    </header>
+    <div class="d-flex">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h4 class="mb-0">
+                    <span class="text-orange">Mirmex</span> HelpDesk
+                </h4>
+            </div>
 
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+            {% if user.is_authenticated %}
+            <div class="user-info">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="ms-2 flex-grow-1">
+                        <div class="user-name">{{ user.username }}</div>
+                        <div class="user-status">
+                            <span class="status-indicator"></span> Online
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <a href="{% url 'ticket_list' %}" class="nav-item {% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        <span>Панель приборов</span>
+                    </a>
+                    
+                    <a href="{% url 'ticket_create' %}" class="nav-item">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Создать заявку</span>
+                    </a>
+                </div>
+
+                <div class="nav-section-title">Управление</div>
+                
+                <div class="nav-section">
+                    <a href="{% url 'ticket_list' %}" class="nav-item">
+                        <i class="bi bi-list-ul"></i>
+                        <span>Список заявок</span>
+                        {% if user.is_authenticated %}
+                        <span class="badge bg-orange ms-auto">
+                            {% if user.is_superuser %}
+                                Все
+                            {% else %}
+                                Мои
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{% url 'equipment_list' %}" class="nav-item">
+                        <i class="bi bi-cpu"></i>
+                        <span>Оборудование</span>
+                    </a>
+                </div>
+
+                {% if user.is_superuser %}
+                <div class="nav-section-title">Администрирование</div>
+                <div class="nav-section">
+                    <a href="/admin/" class="nav-item">
+                        <i class="bi bi-gear"></i>
+                        <span>Настройки</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+
+            {% if user.is_authenticated %}
+            <div class="sidebar-footer">
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-box-arrow-right"></i> Выйти
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Верхняя панель -->
+            <header class="top-bar">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="page-title">{% block page_title %}Панель приборов{% endblock %}</h1>
+                        <p class="text-muted small mb-0">{% block page_subtitle %}Основная информация{% endblock %}</p>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        {% if user.is_authenticated and user_role_display %}
+                            <span class="badge {{ user_role_badge }}">{{ user_role_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <!-- Контент страницы -->
+            <div class="content-area">
+                <!-- Сообщения -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-info-circle"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
 </body>
 </html>

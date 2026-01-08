@@ -1,18 +1,69 @@
 {% extends 'base_generic.html' %}
 
+{% block page_title %}Назначить техника{% endblock %}
+{% block page_subtitle %}Заявка #{{ ticket.id }}{% endblock %}
+
 {% block content %}
-  <h1>Назначить техника для тикета "{{ ticket.title }}"</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-orange text-white">
+                <i class="bi bi-person-plus"></i> Назначить техника
+            </div>
+            <div class="card-body">
+                <!-- Информация о тикете -->
+                <div class="alert alert-info mb-3">
+                    <div class="mb-1">
+                        <strong>Тикет:</strong> {{ ticket.title }}
+                    </div>
+                    <div>
+                        <strong>Текущий статус:</strong> 
+                        <span class="status-badge status-{{ ticket.status }}">
+                            {{ ticket.get_status_display }}
+                        </span>
+                    </div>
+                </div>
 
-  <form method="post">
-    {% csrf_token %}
-    <label for="technician">Выберите техника:</label>
-    <select name="technician" id="technician">
-      {% for tech in technicians %}
-        <option value="{{ tech.pk }}">{{ tech.get_full_name }} ({{ tech.username }})</option>
-      {% endfor %}
-    </select>
-    <button type="submit">Назначить</button>
-  </form>
-
-  <a href="{% url 'ticket_detail' ticket.pk %}">Отмена</a>
+                <!-- Форма назначения -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="technician" class="form-label">
+                            Выберите техника <span class="text-danger">*</span>
+                        </label>
+                        <select name="technician" 
+                                id="technician" 
+                                class="form-select" 
+                                required>
+                            <option value="">--- Выберите техника ---</option>
+                            {% for tech in technicians %}
+                                <option value="{{ tech.pk }}">
+                                    {% if tech.get_full_name %}
+                                        {{ tech.get_full_name }} ({{ tech.username }})
+                                    {% else %}
+                                        {{ tech.username }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted mt-1">
+                            <i class="bi bi-info-circle"></i> 
+                            После назначения статус автоматически изменится на "Назначена"
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2 justify-content-end mt-3">
+                        <a href="{% url 'ticket_detail' ticket.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-orange">
+                            <i class="bi bi-check-circle"></i> Назначить техника
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

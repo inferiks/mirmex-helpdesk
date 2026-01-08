@@ -1,10 +1,88 @@
 {% extends "base_generic.html" %}
 
+{% block page_title %}Создать заявку{% endblock %}
+{% block page_subtitle %}Заполните форму для создания новой заявки{% endblock %}
+
 {% block content %}
-<h2>Создать заявку</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить</button>
-</form>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-orange text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Новая заявка</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            {% if field.name == 'description' %}
+                                <textarea name="{{ field.name }}" 
+                                          id="{{ field.id_for_label }}" 
+                                          class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                          rows="6" 
+                                          placeholder="Опишите проблему подробно..."
+                                          {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                            {% elif field.name == 'equipment' %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}" 
+                                        class="form-select {% if field.errors %}is-invalid{% endif %}"
+                                        {% if field.field.required %}required{% endif %}>
+                                    <option value="">--- Выберите оборудование ---</option>
+                                    {% for choice in field.field.choices %}
+                                        {% if choice.0 %}
+                                            <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="Введите {{ field.label|lower }}"
+                                       {% if field.field.required %}required{% endif %}>
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-orange">
+                            <i class="bi bi-save"></i> Создать заявку
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

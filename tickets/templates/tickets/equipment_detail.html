@@ -1,8 +1,117 @@
 {% extends "base_generic.html" %}
 
+{% block page_title %}Оборудование: {{ object.model }}{% endblock %}
+{% block page_subtitle %}Серийный номер: {{ object.serial }}{% endblock %}
+
 {% block content %}
-<h2>оборудование: {{ object.model }}</h2>
-<p><b>Серийный номер:</b> {{ object.serial }}</p>
-<p><b>Расположение:</b> {{ object.location }}</p>
-<p><b>Статус:</b> {{ object.get_status_display }}</p>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-cpu"></i> {{ object.model }}
+            </div>
+            <div class="card-body">
+                <!-- Основная информация -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <label class="text-muted small d-block mb-1">СЕРИЙНЫЙ НОМЕР</label>
+                        <div class="h5 text-orange mb-0">{{ object.serial }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="text-muted small d-block mb-1">СТАТУС</label>
+                        <span class="status-badge status-{{ object.status }}">
+                            {{ object.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if object.location %}
+                <div class="mb-3">
+                    <label class="text-muted small d-block mb-1">РАСПОЛОЖЕНИЕ</label>
+                    <div>
+                        <i class="bi bi-geo-alt text-orange"></i> {{ object.location }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <hr class="my-3">
+
+                <!-- Связанные заявки -->
+                <div class="mt-3">
+                    <h6 class="mb-2">
+                        <i class="bi bi-ticket-perforated"></i> Связанные заявки
+                    </h6>
+                    {% if object.tickets.all %}
+                        <div class="list-group">
+                            {% for ticket in object.tickets.all %}
+                            <a href="{% url 'ticket_detail' ticket.pk %}" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">
+                                        #{{ ticket.id }} - {{ ticket.title }}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                </div>
+                                <span class="status-badge status-{{ ticket.status }}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> 
+                            По этому оборудованию заявок пока нет
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning"></i> Действия
+            </div>
+            <div class="card-body">
+                <a class="btn btn-outline-secondary w-100 mb-2" href="{% url 'equipment_list' %}">
+                    <i class="bi bi-arrow-left"></i> К списку оборудования
+                </a>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> Статистика
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted d-block">Всего заявок</small>
+                    <strong class="h5 text-orange">{{ object.tickets.count }}</strong>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted d-block">Открытых заявок</small>
+                    <strong class="h5">{{ active_tickets_count }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Информация
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <i class="bi bi-shield-check"></i> 
+                    Для изменения данных об оборудовании обратитесь к администратору
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

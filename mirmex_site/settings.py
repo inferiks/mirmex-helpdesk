@@ -60,9 +60,11 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                'django.template.context_processors.debug',
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'tickets.context_processors.user_role',
             ],
         },
     },
@@ -72,6 +74,11 @@ WSGI_APPLICATION = "mirmex_site.wsgi.application"
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+
+LOGIN_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/tickets/'
 
 
 # Database
@@ -124,7 +131,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'mirmex_site' / 'static']
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

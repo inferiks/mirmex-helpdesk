@@ -79,38 +79,39 @@ class Tickets(models.Model):
             ('can_change_status', 'Can change ticket status'),
         ]
 
-    def assign(self, technician):
+    def assign(self, technician, bypass_validation=False):
         if not technician:
             raise ValidationError("Не указан техник")
         
         self.technician = technician
-        self.change_status(self.STATUS_ASSIGNED)
+        self.change_status(self.STATUS_ASSIGNED, bypass_validation=bypass_validation)
         self.save(update_fields=['technician', 'status', 'closed_at'])
 
         
-    def start_work(self):
+    def start_work(self, bypass_validation=False):
         if not self.technician:
             raise ValidationError("Нельзя начать работу без техника")
         
-        self.change_status(self.STATUS_IN_PROGRESS)
+        self.change_status(self.STATUS_IN_PROGRESS, bypass_validation=bypass_validation)
 
-    def change_status(self, new_status):
-        allowed = self.ALLOWED_TRANSITIONS.get(self.status, [])
-        if new_status not in allowed:
-            raise ValidationError(
-                f"недопустимый переход: {self.status} → {new_status}"
-            )
+    def change_status(self, new_status, bypass_validation=False):
+        # Суперпользователь игнорирует все ограничения
+        if not bypass_validation:
+            allowed = self.ALLOWED_TRANSITIONS.get(self.status, [])
+            if new_status not in allowed:
+                raise ValidationError(
+                    f"недопустимый переход: {self.status} → {new_status}"
+                )
             
         self.status = new_status
         
         if new_status == self.STATUS_CLOSED and self.closed_at is None:
             self.closed_at = timezone.now()
 
-
         self.save()
 
-    def close(self):
-        self.change_status(self.STATUS_CLOSED)
+    def close(self, bypass_validation=False):
+        self.change_status(self.STATUS_CLOSED, bypass_validation=bypass_validation)
 
     def __str__(self):
         return f"{self.title} #{self.pk}"

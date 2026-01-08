@@ -1,42 +1,132 @@
 {% extends "base_generic.html" %}
 
+{% block page_title %}Заявка #{{ object.id }}{% endblock %}
+{% block page_subtitle %}{{ object.title }}{% endblock %}
+
 {% block content %}
-<h2>{{ object.title }}</h2>
-<p><b>Описание:</b> {{ object.description }}</p>
-<p><b>Статус:</b> {{ object.get_status_display }}</p>
-<p><b>Создана:</b> {{ object.created_at }}</p>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ object.title }}</h3>
+            </div>
+            <div class="card-body">
+                <!-- Статус и дата -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block mb-1">СТАТУС</label>
+                        <span class="status-badge status-{{ object.status }}">
+                            {{ object.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block mb-1">СОЗДАНА</label>
+                        <p class="mb-0">
+                            <i class="bi bi-calendar"></i> {{ object.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                    </div>
+                </div>
 
-{% if object.equipment %}
-<p><b>Оборудование:</b> {{ object.equipment.model }} ({{ object.equipment.serial }})</p>
-{% endif %}
+                <!-- Описание -->
+                <div class="mb-4">
+                    <label class="text-muted small d-block mb-2">ОПИСАНИЕ</label>
+                    <div class="p-3 bg-light rounded">
+                        {{ object.description }}
+                    </div>
+                </div>
 
-{% if object.technician %}
-<p><b>Назначен техник:</b> {{ object.technician.username }}</p>
-{% else %}
-<p><b>Техник не назначен</b></p>
-{% endif %}
+                <!-- Информация -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small d-block mb-1">ОБОРУДОВАНИЕ</label>
+                        {% if object.equipment %}
+                            <a href="{% url 'equipment_detail' object.equipment.pk %}" class="text-decoration-none">
+                                <i class="bi bi-cpu text-orange"></i> 
+                                {{ object.equipment.model }} ({{ object.equipment.serial }})
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Не указано</span>
+                        {% endif %}
+                    </div>
 
-{# Кнопка прямого редактирования - только для суперпользователя #}
-{% if can_edit_directly %}
-    <a href="{% url 'ticket_update' object.pk %}">Редактировать напрямую (Админ)</a>
-    <br><br>
-{% endif %}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small d-block mb-1">ТЕХНИК</label>
+                        {% if object.technician %}
+                            <span class="text-success">
+                                <i class="bi bi-person-check"></i> {{ object.technician.username }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="bi bi-person-x"></i> Не назначен
+                            </span>
+                        {% endif %}
+                    </div>
 
-{# Назначение техника #}
-{% if can_assign and object.status == 'new' %}
-    <a href="{% url 'ticket_assign' object.pk %}">Назначить техника</a>
-{% endif %}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small d-block mb-1">РЕПОРТЁР</label>
+                        <i class="bi bi-person"></i> {{ object.reporter.username }}
+                    </div>
 
-{# Взять в работу #}
-{% if can_change_status and object.status == 'assigned' and object.technician == user %}
-    <a href="{% url 'ticket_start' object.pk %}">Взять в работу</a>
-{% endif %}
+                    {% if object.closed_at %}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small d-block mb-1">ЗАКРЫТА</label>
+                        <i class="bi bi-calendar-check"></i> {{ object.closed_at|date:"d.m.Y H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
-{# Закрыть тикет #}
-{% if can_change_status %}
-    {% if object.status != 'closed' %}
-        <a href="{% url 'ticket_close' object.pk %}">Закрыть тикет</a>
-    {% endif %}
-{% endif %}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Действия</h5>
+            </div>
+            <div class="card-body">
+                {% if can_edit_directly %}
+                    <a class="btn btn-warning w-100 mb-2" href="{% url 'ticket_update' object.pk %}">
+                        <i class="bi bi-pencil-square"></i> Редактировать (Админ)
+                    </a>
+                    <hr>
+                {% endif %}
 
+                {% if can_assign and object.status == 'new' %}
+                    <a class="btn btn-orange w-100 mb-2" href="{% url 'ticket_assign' object.pk %}">
+                        <i class="bi bi-person-plus"></i> Назначить техника
+                    </a>
+                {% endif %}
+
+                {% if can_change_status and object.status == 'assigned' and object.technician == user %}
+                    <a class="btn btn-primary w-100 mb-2" href="{% url 'ticket_start' object.pk %}">
+                        <i class="bi bi-play-circle"></i> Взять в работу
+                    </a>
+                {% endif %}
+
+                {% if can_change_status and object.status != 'closed' %}
+                    <a class="btn btn-success w-100 mb-2" href="{% url 'ticket_close' object.pk %}">
+                        <i class="bi bi-check-circle"></i> Закрыть тикет
+                    </a>
+                {% endif %}
+
+                <a class="btn btn-outline-secondary w-100 mt-3" href="{% url 'ticket_list' %}">
+                    <i class="bi bi-arrow-left"></i> К списку
+                </a>
+            </div>
+        </div>
+
+        <!-- Информационная карточка -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Информация</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    Тикет ID: <strong>#{{ object.id }}</strong><br>
+                    Дней с создания: <strong>{{ object.created_at|timesince }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

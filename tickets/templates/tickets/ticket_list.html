@@ -1,16 +1,109 @@
 {% extends "base_generic.html" %}
 
+{% block page_title %}Панель приборов{% endblock %}
+{% block page_subtitle %}Основная информация{% endblock %}
+
 {% block content %}
-<h1>Список заявок</h1>
-<a href="{% url 'ticket_create' %}">Создать заявку</a>
-<ul>
-    {% for ticket in object_list %}
-    <li>
-        <a href="{% url 'ticket_detail' ticket.id %}">{{ ticket.title }}</a>
-        - {{ ticket.status }}
-    </li>
-    {% empty %}
-        <li>Заявок нет</li>
-    {% endfor %}
-</ul>
+<!-- Статистические карточки -->
+<div class="stats-grid">
+    <a href="?status=new" class="stat-card stat-new text-decoration-none">
+        <div class="stat-icon">
+            <i class="bi bi-arrow-down-circle"></i>
+        </div>
+        <div class="stat-value">
+            {{ count_new }}
+        </div>
+        <div class="stat-label">
+            {% if is_admin_or_dispatcher %}
+                Новые заявки
+            {% else %}
+                Мои новые
+            {% endif %}
+        </div>
+    </a>
+    
+    <a href="?status=assigned" class="stat-card stat-assigned text-decoration-none">
+        <div class="stat-icon">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-value">
+            {{ count_assigned }}
+        </div>
+        <div class="stat-label">Назначенные</div>
+    </a>
+    
+    <a href="?status=in_progress" class="stat-card stat-in-progress text-decoration-none">
+        <div class="stat-icon">
+            <i class="bi bi-arrow-clockwise"></i>
+        </div>
+        <div class="stat-value">
+            {{ count_in_progress }}
+        </div>
+        <div class="stat-label">В работе</div>
+    </a>
+    
+    <a href="?status=closed" class="stat-card stat-closed text-decoration-none">
+        <div class="stat-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-value">
+            {{ count_closed }}
+        </div>
+        <div class="stat-label">Завершённые</div>
+    </a>
+</div>
+
+<!-- Последние заявки -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-list-ul"></i> 
+            {% if current_status %}
+                Заявки: {{ current_status_display }}
+            {% else %}
+                Все заявки
+            {% endif %}
+        </span>
+        {% if current_status %}
+            <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x"></i> Сбросить фильтр
+            </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-2">
+        {% if object_list %}
+            {% for ticket in object_list %}
+            <div class="ticket-item">
+                <a href="{% url 'ticket_detail' ticket.id %}" class="ticket-title">
+                    #{{ ticket.id }} - {{ ticket.title }}
+                </a>
+                <div class="ticket-meta">
+                    {% if ticket.equipment %}
+                        <span><i class="bi bi-cpu"></i> {{ ticket.equipment.model }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y H:i" }}</span>
+                    {% if ticket.technician %}
+                        <span><i class="bi bi-person"></i> {{ ticket.technician.username }}</span>
+                    {% else %}
+                        <span class="text-muted"><i class="bi bi-person-x"></i> Не назначен</span>
+                    {% endif %}
+                    <span class="ms-auto">
+                        <span class="status-badge status-{{ ticket.status }}">
+                            {{ ticket.get_status_display }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state py-4">
+                <i class="bi bi-inbox"></i>
+                <p>Заявок с этим статусом нет</p>
+                <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary mt-2">
+                    Показать все заявки
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
