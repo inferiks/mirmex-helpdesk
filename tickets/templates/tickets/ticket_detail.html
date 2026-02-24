@@ -5,80 +5,151 @@
 
 {% block content %}
 <div class="row">
+    <!-- LEFT: Main info + comments -->
     <div class="col-lg-8">
+        <!-- Main card -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">{{ object.title }}</h3>
+                {% if object.is_overdue %}
+                <span class="badge bg-danger"><i class="bi bi-alarm"></i> Просрочена</span>
+                {% endif %}
             </div>
             <div class="card-body">
-                <!-- Статус и дата -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
+                <!-- Row 1: status, priority, category -->
+                <div class="row mb-3">
+                    <div class="col-sm-4">
                         <label class="text-muted small d-block mb-1">СТАТУС</label>
-                        <span class="status-badge status-{{ object.status }}">
-                            {{ object.get_status_display }}
+                        <span class="status-badge status-{{ object.status }}">{{ object.get_status_display }}</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="text-muted small d-block mb-1">ПРИОРИТЕТ</label>
+                        <span class="priority-badge priority-{{ object.priority }}">
+                            {% if object.priority == 'critical' %}<i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
+                            {{ object.get_priority_display }}
                         </span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-sm-4">
+                        <label class="text-muted small d-block mb-1">КАТЕГОРИЯ</label>
+                        <span class="category-badge">
+                            <i class="bi bi-tag"></i> {{ object.get_category_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Row 2: dates -->
+                <div class="row mb-3">
+                    <div class="col-sm-4">
                         <label class="text-muted small d-block mb-1">СОЗДАНА</label>
-                        <p class="mb-0">
-                            <i class="bi bi-calendar"></i> {{ object.created_at|date:"d.m.Y H:i" }}
-                        </p>
+                        <span><i class="bi bi-calendar"></i> {{ object.created_at|date:"d.m.Y H:i" }}</span>
                     </div>
+                    {% if object.due_date %}
+                    <div class="col-sm-4">
+                        <label class="text-muted small d-block mb-1">СРОК (SLA)</label>
+                        <span class="{% if is_overdue %}text-danger{% else %}text-warning{% endif %}">
+                            <i class="bi bi-alarm"></i> {{ object.due_date|date:"d.m.Y H:i" }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if object.closed_at %}
+                    <div class="col-sm-4">
+                        <label class="text-muted small d-block mb-1">ЗАКРЫТА</label>
+                        <span class="text-success"><i class="bi bi-calendar-check"></i> {{ object.closed_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    {% endif %}
                 </div>
 
-                <!-- Описание -->
-                <div class="mb-4">
+                <!-- Description -->
+                <div class="mb-3">
                     <label class="text-muted small d-block mb-2">ОПИСАНИЕ</label>
-                    <div class="p-3 bg-light rounded">
-                        {{ object.description }}
-                    </div>
+                    <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ object.description }}</div>
                 </div>
 
-                <!-- Информация -->
+                <!-- Equipment + People -->
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-sm-4 mb-2">
                         <label class="text-muted small d-block mb-1">ОБОРУДОВАНИЕ</label>
                         {% if object.equipment %}
                             <a href="{% url 'equipment_detail' object.equipment.pk %}" class="text-decoration-none">
-                                <i class="bi bi-cpu text-orange"></i> 
+                                <i class="bi bi-cpu text-orange"></i>
                                 {{ object.equipment.model }} ({{ object.equipment.serial }})
                             </a>
                         {% else %}
                             <span class="text-muted">Не указано</span>
                         {% endif %}
                     </div>
-
-                    <div class="col-md-6 mb-3">
+                    <div class="col-sm-4 mb-2">
+                        <label class="text-muted small d-block mb-1">ЗАЯВИТЕЛЬ</label>
+                        <span><i class="bi bi-person"></i>
+                            {{ object.reporter.get_full_name|default:object.reporter.username }}
+                        </span>
+                    </div>
+                    <div class="col-sm-4 mb-2">
                         <label class="text-muted small d-block mb-1">ТЕХНИК</label>
                         {% if object.technician %}
-                            <span class="text-success">
-                                <i class="bi bi-person-check"></i> {{ object.technician.username }}
+                            <span class="text-success"><i class="bi bi-person-check"></i>
+                                {{ object.technician.get_full_name|default:object.technician.username }}
                             </span>
                         {% else %}
-                            <span class="text-muted">
-                                <i class="bi bi-person-x"></i> Не назначен
-                            </span>
+                            <span class="text-muted"><i class="bi bi-person-x"></i> Не назначен</span>
                         {% endif %}
                     </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small d-block mb-1">РЕПОРТЁР</label>
-                        <i class="bi bi-person"></i> {{ object.reporter.username }}
-                    </div>
-
-                    {% if object.closed_at %}
-                    <div class="col-md-6 mb-3">
-                        <label class="text-muted small d-block mb-1">ЗАКРЫТА</label>
-                        <i class="bi bi-calendar-check"></i> {{ object.closed_at|date:"d.m.Y H:i" }}
-                    </div>
-                    {% endif %}
                 </div>
+
+                {% if object.status == 'closed' and object.resolution_hours %}
+                <div class="mt-2 p-2 rounded" style="background:#f0fdf4; border-left: 3px solid #10b981;">
+                    <small class="text-success">
+                        <i class="bi bi-stopwatch"></i>
+                        Время решения: <strong>{{ object.resolution_hours }} ч.</strong>
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-chat-left-text"></i> Комментарии
+                {% if comments %}<span class="badge bg-secondary ms-1">{{ comments|length }}</span>{% endif %}
+            </div>
+            <div class="card-body">
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">
+                                <i class="bi bi-person-circle text-orange"></i>
+                                <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                            </span>
+                            <span class="comment-time text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="comment-body">{{ comment.text }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small mb-3">Комментариев пока нет.</p>
+                {% endif %}
+
+                <!-- Add comment form -->
+                {% if object.status != 'closed' %}
+                <form method="post" action="{% url 'ticket_comment' object.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        {{ comment_form.text }}
+                    </div>
+                    <button type="submit" class="btn btn-orange btn-sm">
+                        <i class="bi bi-send"></i> Отправить
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>
 
+    <!-- RIGHT: Actions + Info + History -->
     <div class="col-lg-4">
+        <!-- Actions -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-lightning"></i> Действия</h5>
@@ -103,30 +174,98 @@
                     </a>
                 {% endif %}
 
-                {% if can_change_status and object.status != 'closed' %}
-                    <a class="btn btn-success w-100 mb-2" href="{% url 'ticket_close' object.pk %}">
-                        <i class="bi bi-check-circle"></i> Закрыть тикет
+                {% if can_assign and object.status == 'assigned' %}
+                    <a class="btn btn-primary w-100 mb-2" href="{% url 'ticket_start' object.pk %}">
+                        <i class="bi bi-play-circle"></i> Начать работу
                     </a>
                 {% endif %}
 
-                <a class="btn btn-outline-secondary w-100 mt-3" href="{% url 'ticket_list' %}">
+                {% if can_change_status and object.status != 'closed' %}
+                    <a class="btn btn-success w-100 mb-2" href="{% url 'ticket_close' object.pk %}">
+                        <i class="bi bi-check-circle"></i> Закрыть заявку
+                    </a>
+                {% endif %}
+
+                <a class="btn btn-outline-secondary w-100 mt-2" href="{% url 'ticket_list' %}">
                     <i class="bi bi-arrow-left"></i> К списку
                 </a>
             </div>
         </div>
 
-        <!-- Информационная карточка -->
+        <!-- Info -->
         <div class="card mt-3">
             <div class="card-header">
                 <h6 class="mb-0"><i class="bi bi-info-circle"></i> Информация</h6>
             </div>
             <div class="card-body">
-                <small class="text-muted">
-                    Тикет ID: <strong>#{{ object.id }}</strong><br>
-                    Дней с создания: <strong>{{ object.created_at|timesince }}</strong>
-                </small>
+                <table class="table table-sm table-borderless mb-0" style="font-size:0.82rem;">
+                    <tr>
+                        <td class="text-muted">ID</td>
+                        <td><strong>#{{ object.id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Создана</td>
+                        <td>{{ object.created_at|timesince }} назад</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Приоритет</td>
+                        <td><span class="priority-badge priority-{{ object.priority }}">{{ object.get_priority_display }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Категория</td>
+                        <td>{{ object.get_category_display }}</td>
+                    </tr>
+                    {% if object.due_date %}
+                    <tr>
+                        <td class="text-muted">SLA</td>
+                        <td class="{% if is_overdue %}text-danger{% endif %}">{{ object.due_date|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if history %}
+                    <tr>
+                        <td class="text-muted">Изменений</td>
+                        <td>{{ history|length }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
             </div>
         </div>
+
+        <!-- History timeline -->
+        {% if history %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> История</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="history-timeline">
+                    {% for entry in history %}
+                    <div class="history-item">
+                        <div class="history-icon
+                            {% if entry.action == 'created' %}hi-created
+                            {% elif entry.action == 'status_changed' %}hi-status
+                            {% elif entry.action == 'assigned' %}hi-assigned
+                            {% elif entry.action == 'commented' %}hi-comment
+                            {% else %}hi-edit{% endif %}">
+                            {% if entry.action == 'created' %}<i class="bi bi-plus-circle"></i>
+                            {% elif entry.action == 'status_changed' %}<i class="bi bi-arrow-right-circle"></i>
+                            {% elif entry.action == 'assigned' %}<i class="bi bi-person-check"></i>
+                            {% elif entry.action == 'commented' %}<i class="bi bi-chat"></i>
+                            {% else %}<i class="bi bi-pencil"></i>{% endif %}
+                        </div>
+                        <div class="history-content">
+                            <div class="history-comment">{{ entry.comment }}</div>
+                            <div class="history-meta">
+                                {% if entry.changed_by %}{{ entry.changed_by.get_full_name|default:entry.changed_by.username }}{% else %}Система{% endif %}
+                                · {{ entry.timestamp|date:"d.m.Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

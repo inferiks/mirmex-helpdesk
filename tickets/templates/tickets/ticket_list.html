@@ -1,107 +1,169 @@
 {% extends "base_generic.html" %}
 
 {% block page_title %}Панель приборов{% endblock %}
-{% block page_subtitle %}Основная информация{% endblock %}
+{% block page_subtitle %}Управление заявками ООО Мирмекс{% endblock %}
 
 {% block content %}
 <!-- Статистические карточки -->
 <div class="stats-grid">
     <a href="?status=new" class="stat-card stat-new text-decoration-none">
-        <div class="stat-icon">
-            <i class="bi bi-arrow-down-circle"></i>
-        </div>
-        <div class="stat-value">
-            {{ count_new }}
-        </div>
-        <div class="stat-label">
-            {% if is_admin_or_dispatcher %}
-                Новые заявки
-            {% else %}
-                Мои новые
-            {% endif %}
-        </div>
+        <div class="stat-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="stat-value">{{ count_new }}</div>
+        <div class="stat-label">{% if is_admin_or_dispatcher %}Новые{% else %}Мои новые{% endif %}</div>
     </a>
-    
     <a href="?status=assigned" class="stat-card stat-assigned text-decoration-none">
-        <div class="stat-icon">
-            <i class="bi bi-hourglass-split"></i>
-        </div>
-        <div class="stat-value">
-            {{ count_assigned }}
-        </div>
+        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-value">{{ count_assigned }}</div>
         <div class="stat-label">Назначенные</div>
     </a>
-    
     <a href="?status=in_progress" class="stat-card stat-in-progress text-decoration-none">
-        <div class="stat-icon">
-            <i class="bi bi-arrow-clockwise"></i>
-        </div>
-        <div class="stat-value">
-            {{ count_in_progress }}
-        </div>
+        <div class="stat-icon"><i class="bi bi-arrow-clockwise"></i></div>
+        <div class="stat-value">{{ count_in_progress }}</div>
         <div class="stat-label">В работе</div>
     </a>
-    
     <a href="?status=closed" class="stat-card stat-closed text-decoration-none">
-        <div class="stat-icon">
-            <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-value">
-            {{ count_closed }}
-        </div>
+        <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-value">{{ count_closed }}</div>
         <div class="stat-label">Завершённые</div>
     </a>
 </div>
 
-<!-- Последние заявки -->
+<!-- Фильтры -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <!-- Search -->
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Поиск</label>
+                <input type="text" name="q" class="form-control form-control-sm"
+                       placeholder="Номер или текст..." value="{{ search_query }}">
+            </div>
+            <!-- Status -->
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Статус</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Все статусы</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Priority -->
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Приоритет</label>
+                <select name="priority" class="form-select form-select-sm">
+                    <option value="">Все приоритеты</option>
+                    {% for val, label in priority_choices %}
+                    <option value="{{ val }}" {% if current_priority == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Category -->
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Категория</label>
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">Все категории</option>
+                    {% for val, label in category_choices %}
+                    <option value="{{ val }}" {% if current_category == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Technician (admin/dispatcher only) -->
+            {% if is_admin_or_dispatcher %}
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Техник</label>
+                <select name="technician" class="form-select form-select-sm">
+                    <option value="">Все техники</option>
+                    <option value="none" {% if current_technician == 'none' %}selected{% endif %}>Не назначен</option>
+                    {% for t in technicians %}
+                    <option value="{{ t.pk }}" {% if current_technician == t.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ t.get_full_name|default:t.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <!-- Buttons -->
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-orange btn-sm">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                {% if has_filter %}
+                <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary btn-sm" title="Сбросить">
+                    <i class="bi bi-x"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Список заявок -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>
-            <i class="bi bi-list-ul"></i> 
-            {% if current_status %}
-                Заявки: {{ current_status_display }}
-            {% else %}
-                Все заявки
-            {% endif %}
+            <i class="bi bi-list-ul"></i>
+            {% if has_filter %}Результаты фильтрации{% else %}Все заявки{% endif %}
+            <span class="badge bg-secondary ms-1">{{ object_list|length }}</span>
         </span>
-        {% if current_status %}
-            <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-x"></i> Сбросить фильтр
-            </a>
+        {% if is_admin_or_dispatcher %}
+        <a href="{% url 'ticket_create' %}" class="btn btn-orange btn-sm">
+            <i class="bi bi-plus"></i> Новая заявка
+        </a>
         {% endif %}
     </div>
     <div class="card-body p-2">
         {% if object_list %}
             {% for ticket in object_list %}
-            <div class="ticket-item">
-                <a href="{% url 'ticket_detail' ticket.id %}" class="ticket-title">
-                    #{{ ticket.id }} - {{ ticket.title }}
-                </a>
-                <div class="ticket-meta">
-                    {% if ticket.equipment %}
-                        <span><i class="bi bi-cpu"></i> {{ ticket.equipment.model }}</span>
-                    {% endif %}
-                    <span><i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y H:i" }}</span>
-                    {% if ticket.technician %}
-                        <span><i class="bi bi-person"></i> {{ ticket.technician.username }}</span>
-                    {% else %}
-                        <span class="text-muted"><i class="bi bi-person-x"></i> Не назначен</span>
-                    {% endif %}
-                    <span class="ms-auto">
+            <div class="ticket-item ticket-priority-{{ ticket.priority }}">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div class="flex-grow-1">
+                        <a href="{% url 'ticket_detail' ticket.id %}" class="ticket-title">
+                            #{{ ticket.id }} — {{ ticket.title }}
+                        </a>
+                        <div class="ticket-meta mt-1">
+                            <span class="priority-badge priority-{{ ticket.priority }}">
+                                {% if ticket.priority == 'critical' %}<i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
+                                {{ ticket.get_priority_display }}
+                            </span>
+                            <span class="category-badge">
+                                <i class="bi bi-tag"></i> {{ ticket.get_category_display }}
+                            </span>
+                            {% if ticket.equipment %}
+                                <span><i class="bi bi-cpu"></i> {{ ticket.equipment.model }}</span>
+                            {% endif %}
+                            <span><i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y H:i" }}</span>
+                            {% if ticket.technician %}
+                                <span><i class="bi bi-person-check"></i> {{ ticket.technician.get_full_name|default:ticket.technician.username }}</span>
+                            {% else %}
+                                <span class="text-muted"><i class="bi bi-person-x"></i> Не назначен</span>
+                            {% endif %}
+                            {% if ticket.due_date and ticket.status != 'closed' %}
+                                {% if ticket.is_overdue %}
+                                <span class="text-danger"><i class="bi bi-alarm"></i> Просрочена</span>
+                                {% else %}
+                                <span class="text-warning"><i class="bi bi-alarm"></i> {{ ticket.due_date|date:"d.m.Y" }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0">
                         <span class="status-badge status-{{ ticket.status }}">
                             {{ ticket.get_status_display }}
                         </span>
-                    </span>
+                    </div>
                 </div>
             </div>
             {% endfor %}
         {% else %}
             <div class="empty-state py-4">
                 <i class="bi bi-inbox"></i>
-                <p>Заявок с этим статусом нет</p>
+                <p>Заявок не найдено</p>
+                {% if has_filter %}
                 <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary mt-2">
-                    Показать все заявки
+                    Сбросить фильтры
                 </a>
+                {% endif %}
             </div>
         {% endif %}
     </div>

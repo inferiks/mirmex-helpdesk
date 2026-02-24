@@ -1,0 +1,79 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Пользователи{% endblock %}
+{% block page_subtitle %}Управление учётными записями системы{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people"></i> Всего пользователей: {{ users|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-0" style="font-size:0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Пользователь</th>
+                        <th>Роль</th>
+                        <th class="text-center">Подано заявок</th>
+                        <th class="text-center">Назначено</th>
+                        <th class="text-center">Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in user_data %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar-sm">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">
+                                        {{ item.user.get_full_name|default:item.user.username }}
+                                    </div>
+                                    <small class="text-muted">@{{ item.user.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if item.role == 'Администратор' %}bg-danger
+                                {% elif item.role == 'Диспетчер' %}bg-warning text-dark
+                                {% elif item.role == 'Техник' %}bg-primary
+                                {% else %}bg-secondary{% endif %}">
+                                {{ item.role }}
+                            </span>
+                        </td>
+                        <td class="text-center">{{ item.reported }}</td>
+                        <td class="text-center">{{ item.assigned }}</td>
+                        <td class="text-center">
+                            {% if item.user.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_superuser or user.groups.filter(name='admin').exists %}
+                            <a href="{% url 'user_edit' item.user.pk %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+            <i class="bi bi-people"></i>
+            <p>Пользователей не найдено</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

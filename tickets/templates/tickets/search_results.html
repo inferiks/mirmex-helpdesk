@@ -1,0 +1,81 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Поиск{% endblock %}
+{% block page_subtitle %}
+    {% if search_query %}Результаты по запросу «{{ search_query }}»{% else %}Введите запрос для поиска{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control"
+                   placeholder="Поиск по номеру, теме или описанию..."
+                   value="{{ search_query }}" autofocus>
+            <button type="submit" class="btn btn-orange">
+                <i class="bi bi-search"></i> Найти
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if search_query %}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-search"></i>
+        Найдено: <strong>{{ results|length }}</strong>
+        {% if results|length == 1 %}результат{% elif results|length > 1 and results|length < 5 %}результата{% else %}результатов{% endif %}
+        по запросу «{{ search_query }}»
+    </div>
+    <div class="card-body p-2">
+        {% if results %}
+            {% for ticket in results %}
+            <div class="ticket-item ticket-priority-{{ ticket.priority }}">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div class="flex-grow-1">
+                        <a href="{% url 'ticket_detail' ticket.id %}" class="ticket-title">
+                            #{{ ticket.id }} — {{ ticket.title }}
+                        </a>
+                        <p class="text-muted small mb-1 mt-1" style="line-height:1.4;">
+                            {{ ticket.description|truncatechars:150 }}
+                        </p>
+                        <div class="ticket-meta">
+                            <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+                            <span class="category-badge"><i class="bi bi-tag"></i> {{ ticket.get_category_display }}</span>
+                            {% if ticket.equipment %}
+                                <span><i class="bi bi-cpu"></i> {{ ticket.equipment.model }}</span>
+                            {% endif %}
+                            <span><i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y" }}</span>
+                            <span><i class="bi bi-person"></i>
+                                {{ ticket.reporter.get_full_name|default:ticket.reporter.username }}
+                            </span>
+                            {% if ticket.technician %}
+                            <span><i class="bi bi-person-check text-success"></i>
+                                {{ ticket.technician.get_full_name|default:ticket.technician.username }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="status-badge status-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state py-5">
+                <i class="bi bi-search"></i>
+                <p>Ничего не найдено по запросу «{{ search_query }}»</p>
+                <small class="text-muted">Попробуйте другой запрос или номер заявки</small>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="empty-state py-5">
+    <i class="bi bi-search" style="font-size:3rem;"></i>
+    <p>Введите запрос выше для поиска заявок</p>
+    <small class="text-muted">Поиск ведётся по теме, описанию и номеру заявки</small>
+</div>
+{% endif %}
+{% endblock %}

@@ -15,9 +15,13 @@ def user_role(request):
             context['user_role'] = 'technician'
             context['user_role_display'] = 'Техник'
             context['user_role_badge'] = 'bg-success'
+        elif request.user.groups.filter(name='admin').exists():
+            context['user_role'] = 'admin'
+            context['user_role_display'] = 'Администратор'
+            context['user_role_badge'] = 'bg-warning text-dark'
         else:
             context['user_role'] = 'reporter'
-            context['user_role_display'] = 'Репортёр'
+            context['user_role_display'] = 'Пользователь'
             context['user_role_badge'] = 'bg-secondary'
     
     return context

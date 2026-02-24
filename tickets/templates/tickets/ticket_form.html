@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="card">
             <div class="card-header bg-orange text-white">
                 <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Новая заявка</h4>
@@ -13,65 +13,85 @@
             <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                     {% endif %}
-                    
-                    {% for field in form %}
-                        <div class="mb-4">
-                            <label for="{{ field.id_for_label }}" class="form-label">
-                                {{ field.label }}
-                                {% if field.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            
-                            {% if field.name == 'description' %}
-                                <textarea name="{{ field.name }}" 
-                                          id="{{ field.id_for_label }}" 
-                                          class="form-control {% if field.errors %}is-invalid{% endif %}" 
-                                          rows="6" 
-                                          placeholder="Опишите проблему подробно..."
-                                          {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
-                            {% elif field.name == 'equipment' %}
-                                <select name="{{ field.name }}" 
-                                        id="{{ field.id_for_label }}" 
-                                        class="form-select {% if field.errors %}is-invalid{% endif %}"
-                                        {% if field.field.required %}required{% endif %}>
-                                    <option value="">--- Выберите оборудование ---</option>
-                                    {% for choice in field.field.choices %}
-                                        {% if choice.0 %}
-                                            <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
-                                                {{ choice.1 }}
-                                            </option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
-                            {% else %}
-                                <input type="text" 
-                                       name="{{ field.name }}" 
-                                       id="{{ field.id_for_label }}" 
-                                       class="form-control {% if field.errors %}is-invalid{% endif %}" 
-                                       value="{{ field.value|default:'' }}"
-                                       placeholder="Введите {{ field.label|lower }}"
-                                       {% if field.field.required %}required{% endif %}>
-                            {% endif %}
-                            
-                            {% if field.help_text %}
-                                <small class="form-text text-muted">{{ field.help_text }}</small>
-                            {% endif %}
-                            
-                            {% if field.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ field.errors }}
-                                </div>
-                            {% endif %}
+
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            Тема <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="title" id="{{ form.title.id_for_label }}"
+                               class="form-control {% if form.title.errors %}is-invalid{% endif %}"
+                               value="{{ form.title.value|default:'' }}"
+                               placeholder="Кратко опишите проблему" required>
+                        {% if form.title.errors %}<div class="invalid-feedback">{{ form.title.errors }}</div>{% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Описание <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="description" id="{{ form.description.id_for_label }}"
+                                  class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                  rows="5" placeholder="Подробно опишите проблему, шаги воспроизведения..." required>{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}<div class="invalid-feedback">{{ form.description.errors }}</div>{% endif %}
+                    </div>
+
+                    <!-- Priority + Category -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">Приоритет</label>
+                            <select name="priority" id="{{ form.priority.id_for_label }}"
+                                    class="form-select {% if form.priority.errors %}is-invalid{% endif %}">
+                                {% for val, label in form.fields.priority.choices %}
+                                <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.priority.errors %}<div class="invalid-feedback">{{ form.priority.errors }}</div>{% endif %}
                         </div>
-                    {% endfor %}
-                    
+                        <div class="col-md-6">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Категория</label>
+                            <select name="category" id="{{ form.category.id_for_label }}"
+                                    class="form-select {% if form.category.errors %}is-invalid{% endif %}">
+                                {% for val, label in form.fields.category.choices %}
+                                <option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.category.errors %}<div class="invalid-feedback">{{ form.category.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Equipment + Due date -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.equipment.id_for_label }}" class="form-label">Оборудование</label>
+                            <select name="equipment" id="{{ form.equipment.id_for_label }}"
+                                    class="form-select {% if form.equipment.errors %}is-invalid{% endif %}">
+                                <option value="">— Не привязано —</option>
+                                {% for eq in form.fields.equipment.queryset %}
+                                <option value="{{ eq.pk }}" {% if form.equipment.value == eq.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ eq.model }} ({{ eq.serial }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.equipment.errors %}<div class="invalid-feedback">{{ form.equipment.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                Срок выполнения (SLA)
+                            </label>
+                            <input type="datetime-local" name="due_date" id="{{ form.due_date.id_for_label }}"
+                                   class="form-control {% if form.due_date.errors %}is-invalid{% endif %}"
+                                   value="{{ form.due_date.value|default:'' }}">
+                            <small class="text-muted">Необязательно</small>
+                            {% if form.due_date.errors %}<div class="invalid-feedback">{{ form.due_date.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2 justify-content-end mt-4">
                         <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Отмена

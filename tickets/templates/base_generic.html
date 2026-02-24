@@ -5,15 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mirmex HelpDesk{% endblock %}</title>
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <div class="d-flex">
@@ -32,7 +27,9 @@
                         <i class="bi bi-person-circle"></i>
                     </div>
                     <div class="ms-2 flex-grow-1">
-                        <div class="user-name">{{ user.username }}</div>
+                        <div class="user-name">
+                            {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                        </div>
                         <div class="user-status">
                             <span class="status-indicator"></span> Online
                         </div>
@@ -47,45 +44,61 @@
                         <i class="bi bi-grid-3x3-gap"></i>
                         <span>Панель приборов</span>
                     </a>
-                    
-                    <a href="{% url 'ticket_create' %}" class="nav-item">
+                    <a href="{% url 'ticket_create' %}" class="nav-item {% if request.resolver_match.url_name == 'ticket_create' %}active{% endif %}">
                         <i class="bi bi-plus-circle"></i>
                         <span>Создать заявку</span>
+                    </a>
+                    <a href="{% url 'search' %}" class="nav-item {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+                        <i class="bi bi-search"></i>
+                        <span>Поиск</span>
                     </a>
                 </div>
 
                 <div class="nav-section-title">Управление</div>
-                
                 <div class="nav-section">
                     <a href="{% url 'ticket_list' %}" class="nav-item">
                         <i class="bi bi-list-ul"></i>
                         <span>Список заявок</span>
-                        {% if user.is_authenticated %}
-                        <span class="badge bg-orange ms-auto">
-                            {% if user.is_superuser %}
-                                Все
-                            {% else %}
-                                Мои
-                            {% endif %}
-                        </span>
-                        {% endif %}
                     </a>
-                    
-                    <a href="{% url 'equipment_list' %}" class="nav-item">
+                    <a href="{% url 'equipment_list' %}" class="nav-item {% if 'equipment' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="bi bi-cpu"></i>
                         <span>Оборудование</span>
                     </a>
                 </div>
 
-                {% if user.is_superuser %}
-                <div class="nav-section-title">Администрирование</div>
+                {% if user.is_authenticated %}
+                {% if user.is_superuser or user.groups.all|length > 0 %}
+                {% with groups=user.groups.values_list('name', flat=True) %}
+                {% if user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                <div class="nav-section-title">Аналитика</div>
                 <div class="nav-section">
-                    <a href="/admin/" class="nav-item">
-                        <i class="bi bi-gear"></i>
-                        <span>Настройки</span>
+                    <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <span>Отчёты</span>
+                    </a>
+                    <a href="{% url 'user_list' %}" class="nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-people"></i>
+                        <span>Пользователи</span>
                     </a>
                 </div>
                 {% endif %}
+                {% endwith %}
+                {% endif %}
+                {% endif %}
+
+                <div class="nav-section-title">Аккаунт</div>
+                <div class="nav-section">
+                    <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Мой профиль</span>
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="/admin/" class="nav-item">
+                        <i class="bi bi-gear"></i>
+                        <span>Django Admin</span>
+                    </a>
+                    {% endif %}
+                </div>
             </nav>
 
             {% if user.is_authenticated %}
@@ -102,15 +115,24 @@
 
         <!-- Основной контент -->
         <main class="main-content">
-            <!-- Верхняя панель -->
             <header class="top-bar">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h1 class="page-title">{% block page_title %}Панель приборов{% endblock %}</h1>
                         <p class="text-muted small mb-0">{% block page_subtitle %}Основная информация{% endblock %}</p>
                     </div>
-                    
                     <div class="d-flex align-items-center gap-3">
+                        <!-- Global search bar -->
+                        <form method="get" action="{% url 'search' %}" class="d-none d-md-flex">
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="q" class="form-control topbar-search"
+                                       placeholder="Поиск заявок..."
+                                       value="{{ request.GET.q|default:'' }}">
+                                <button class="btn btn-orange btn-sm" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
                         {% if user.is_authenticated and user_role_display %}
                             <span class="badge {{ user_role_badge }}">{{ user_role_display }}</span>
                         {% endif %}
@@ -118,9 +140,7 @@
                 </div>
             </header>
 
-            <!-- Контент страницы -->
             <div class="content-area">
-                <!-- Сообщения -->
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -136,5 +156,8 @@
             </div>
         </main>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

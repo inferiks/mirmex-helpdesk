@@ -5,46 +5,56 @@
 
 {% block content %}
 <div class="card">
-    <div class="card-header">
-        <i class="bi bi-cpu"></i> Всего оборудования: {{ object_list|length }}
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu"></i> Всего: {{ object_list|length }}</span>
+        {% with groups=request.user.groups.values_list('name', flat=True) %}
+        {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+        <a href="{% url 'equipment_create' %}" class="btn btn-orange btn-sm">
+            <i class="bi bi-plus"></i> Добавить оборудование
+        </a>
+        {% endif %}
+        {% endwith %}
     </div>
     <div class="card-body">
         {% if object_list %}
             <div class="row">
                 {% for eq in object_list %}
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-4 mb-3">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="flex-grow-1">
                                     <h5 class="text-orange mb-1">{{ eq.model }}</h5>
-                                    <small class="text-muted">SN: {{ eq.serial }}</small>
+                                    <small class="text-muted"><i class="bi bi-upc-scan"></i> {{ eq.serial }}</small>
                                 </div>
-                                <div class="text-end">
-                                    <span class="status-badge status-{{ eq.status }}">
-                                        {{ eq.get_status_display }}
-                                    </span>
-                                </div>
+                                <span class="status-badge status-{{ eq.status }}">{{ eq.get_status_display }}</span>
                             </div>
-                            
+
                             {% if eq.location %}
-                            <p class="mb-3">
-                                <i class="bi bi-geo-alt text-muted"></i> 
+                            <p class="mb-2">
+                                <i class="bi bi-geo-alt text-muted"></i>
                                 <small>{{ eq.location }}</small>
                             </p>
                             {% endif %}
-                            
-                            <div class="mb-2">
-                                <small class="text-muted">
-                                    <i class="bi bi-ticket"></i> 
-                                    Заявок: <strong>{{ eq.tickets.count }}</strong>
-                                </small>
-                            </div>
+
+                            <small class="text-muted">
+                                <i class="bi bi-ticket"></i> Заявок: <strong>{{ eq.tickets.count }}</strong>
+                                &nbsp;
+                                <i class="bi bi-folder2-open"></i> Открытых:
+                                <strong>{{ eq.tickets.exclude.status }}</strong>
+                            </small>
                         </div>
-                        <div class="card-footer bg-transparent border-top-0 pt-0">
-                            <a href="{% url 'equipment_detail' eq.id %}" class="btn btn-outline-primary btn-sm w-100">
+                        <div class="card-footer bg-transparent border-top-0 pt-0 d-flex gap-1">
+                            <a href="{% url 'equipment_detail' eq.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
                                 <i class="bi bi-eye"></i> Подробнее
                             </a>
+                            {% with groups=request.user.groups.values_list('name', flat=True) %}
+                            {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                            <a href="{% url 'equipment_edit' eq.id %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                            {% endwith %}
                         </div>
                     </div>
                 </div>
@@ -54,6 +64,13 @@
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <p>Оборудование не добавлено</p>
+                {% with groups=request.user.groups.values_list('name', flat=True) %}
+                {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                <a href="{% url 'equipment_create' %}" class="btn btn-orange mt-2">
+                    <i class="bi bi-plus"></i> Добавить первое оборудование
+                </a>
+                {% endif %}
+                {% endwith %}
             </div>
         {% endif %}
     </div>
