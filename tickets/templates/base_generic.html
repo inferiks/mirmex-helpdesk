@@ -67,9 +67,7 @@
                 </div>
 
                 {% if user.is_authenticated %}
-                {% if user.is_superuser or user.groups.all|length > 0 %}
-                {% with groups=user.groups.values_list('name', flat=True) %}
-                {% if user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                {% if user.is_superuser or user_role == 'admin' or user_role == 'dispatcher' %}
                 <div class="nav-section-title">Аналитика</div>
                 <div class="nav-section">
                     <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
@@ -81,8 +79,6 @@
                         <span>Пользователи</span>
                     </a>
                 </div>
-                {% endif %}
-                {% endwith %}
                 {% endif %}
                 {% endif %}
 

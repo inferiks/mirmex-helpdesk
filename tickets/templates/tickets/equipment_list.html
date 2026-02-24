@@ -7,13 +7,11 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-cpu"></i> Всего: {{ object_list|length }}</span>
-        {% with groups=request.user.groups.values_list('name', flat=True) %}
-        {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+        {% if user.is_superuser or user_role == 'admin' or user_role == 'dispatcher' %}
         <a href="{% url 'equipment_create' %}" class="btn btn-orange btn-sm">
             <i class="bi bi-plus"></i> Добавить оборудование
         </a>
         {% endif %}
-        {% endwith %}
     </div>
     <div class="card-body">
         {% if object_list %}
@@ -39,22 +37,17 @@
 
                             <small class="text-muted">
                                 <i class="bi bi-ticket"></i> Заявок: <strong>{{ eq.tickets.count }}</strong>
-                                &nbsp;
-                                <i class="bi bi-folder2-open"></i> Открытых:
-                                <strong>{{ eq.tickets.exclude.status }}</strong>
                             </small>
                         </div>
                         <div class="card-footer bg-transparent border-top-0 pt-0 d-flex gap-1">
                             <a href="{% url 'equipment_detail' eq.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
                                 <i class="bi bi-eye"></i> Подробнее
                             </a>
-                            {% with groups=request.user.groups.values_list('name', flat=True) %}
-                            {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                            {% if user.is_superuser or user_role == 'admin' or user_role == 'dispatcher' %}
                             <a href="{% url 'equipment_edit' eq.id %}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             {% endif %}
-                            {% endwith %}
                         </div>
                     </div>
                 </div>
@@ -64,13 +57,11 @@
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <p>Оборудование не добавлено</p>
-                {% with groups=request.user.groups.values_list('name', flat=True) %}
-                {% if request.user.is_superuser or 'admin' in groups or 'dispatcher' in groups %}
+                {% if user.is_superuser or user_role == 'admin' or user_role == 'dispatcher' %}
                 <a href="{% url 'equipment_create' %}" class="btn btn-orange mt-2">
                     <i class="bi bi-plus"></i> Добавить первое оборудование
                 </a>
                 {% endif %}
-                {% endwith %}
             </div>
         {% endif %}
     </div>
