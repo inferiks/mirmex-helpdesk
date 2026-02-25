@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import Tickets, Equipment, Comment
 
@@ -135,9 +136,11 @@ class CommentForm(forms.ModelForm):
 class EquipmentForm(forms.ModelForm):
     class Meta:
         model = Equipment
-        fields = ['model', 'serial', 'location', 'status', 'purchased_at', 'notes']
+        fields = ['model', 'serial', 'equipment_type', 'location', 'status',
+                  'purchased_at', 'warranty_until', 'notes']
         widgets = {
             'purchased_at': forms.DateInput(attrs={'type': 'date'}),
+            'warranty_until': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
@@ -155,6 +158,72 @@ class UserEditForm(forms.Form):
     email = forms.EmailField(label='Email', required=False)
     role = forms.ChoiceField(label='Роль', choices=ROLE_CHOICES)
     is_active = forms.BooleanField(label='Активен', required=False)
+
+
+class UserRegistrationForm(forms.Form):
+    """Self-service registration form for new reporters."""
+    username = forms.CharField(
+        label='Имя пользователя',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Придумайте логин',
+            'autocomplete': 'username',
+        })
+    )
+    first_name = forms.CharField(
+        label='Имя',
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Иван'})
+    )
+    last_name = forms.CharField(
+        label='Фамилия',
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Иванов'})
+    )
+    email = forms.EmailField(
+        label='Email',
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ivanov@mirmex.ru'})
+    )
+    password1 = forms.CharField(
+        label='Пароль',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Минимум 8 символов',
+            'autocomplete': 'new-password',
+        })
+    )
+    password2 = forms.CharField(
+        label='Подтверждение пароля',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Повторите пароль',
+            'autocomplete': 'new-password',
+        })
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise ValidationError('Пользователь с таким именем уже существует.')
+        return username
+
+    def clean_password1(self):
+        password = self.cleaned_data.get('password1')
+        if password:
+            validate_password(password)
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('password1')
+        p2 = cleaned_data.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise ValidationError({'password2': 'Пароли не совпадают.'})
+        return cleaned_data
 
 
 class ProfileForm(forms.Form):

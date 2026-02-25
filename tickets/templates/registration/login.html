@@ -150,7 +150,16 @@
                 </div>
             </form>
             
-            <div class="text-center mt-4">
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Нет аккаунта?
+                    <a href="{% url 'register' %}" class="text-decoration-none fw-semibold"
+                       style="color: var(--primary-orange);">
+                        Зарегистрироваться
+                    </a>
+                </small>
+            </div>
+            <div class="text-center mt-2">
                 <small class="text-muted">
                     <i class="bi bi-shield-check"></i> Защищённое соединение
                 </small>

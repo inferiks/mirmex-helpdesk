@@ -14,50 +14,73 @@
                 <!-- Информация о тикете -->
                 <div class="alert alert-info mb-3">
                     <div class="mb-1">
-                        <strong>Тикет:</strong> {{ ticket.title }}
+                        <strong>Тикет:</strong> #{{ ticket.id }} — {{ ticket.title }}
                     </div>
                     <div>
-                        <strong>Текущий статус:</strong> 
+                        <strong>Текущий статус:</strong>
                         <span class="status-badge status-{{ ticket.status }}">
                             {{ ticket.get_status_display }}
                         </span>
+                        <span class="ms-2 priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
                     </div>
                 </div>
 
                 <!-- Форма назначения -->
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
-                        <label for="technician" class="form-label">
+                        <label class="form-label fw-semibold mb-2">
                             Выберите техника <span class="text-danger">*</span>
                         </label>
-                        <select name="technician" 
-                                id="technician" 
-                                class="form-select" 
-                                required>
-                            <option value="">--- Выберите техника ---</option>
+
+                        {% if technicians %}
                             {% for tech in technicians %}
-                                <option value="{{ tech.pk }}">
-                                    {% if tech.get_full_name %}
-                                        {{ tech.get_full_name }} ({{ tech.username }})
-                                    {% else %}
-                                        {{ tech.username }}
-                                    {% endif %}
-                                </option>
+                            <div class="tech-option mb-2 p-3 border rounded d-flex align-items-center gap-3">
+                                <input class="form-check-input flex-shrink-0 mt-0"
+                                       type="radio" name="technician"
+                                       id="tech{{ tech.pk }}" value="{{ tech.pk }}"
+                                       required
+                                       {% if ticket.technician and ticket.technician.pk == tech.pk %}checked{% endif %}>
+                                <label class="form-check-label flex-grow-1 d-flex justify-content-between align-items-center"
+                                       for="tech{{ tech.pk }}" style="cursor:pointer;">
+                                    <div>
+                                        <div class="fw-semibold">
+                                            {% if tech.get_full_name %}{{ tech.get_full_name }}
+                                            {% else %}{{ tech.username }}{% endif %}
+                                        </div>
+                                        {% if tech.get_full_name %}
+                                        <small class="text-muted">{{ tech.username }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge ms-2
+                                        {% if tech.open_count == 0 %}bg-success
+                                        {% elif tech.open_count <= 3 %}bg-warning text-dark
+                                        {% else %}bg-danger{% endif %}">
+                                        <i class="bi bi-ticket"></i> {{ tech.open_count }} откр.
+                                    </span>
+                                </label>
+                            </div>
                             {% endfor %}
-                        </select>
-                        <small class="form-text text-muted mt-1">
-                            <i class="bi bi-info-circle"></i> 
-                            После назначения статус автоматически изменится на "Назначена"
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Нет доступных техников. Добавьте пользователей в группу «technician».
+                            </div>
+                        {% endif %}
+
+                        <small class="form-text text-muted mt-1 d-block">
+                            <i class="bi bi-info-circle"></i>
+                            «откр.» — количество активных заявок у техника.
+                            После назначения статус автоматически изменится на «Назначена».
                         </small>
                     </div>
-                    
+
                     <div class="d-flex gap-2 justify-content-end mt-3">
                         <a href="{% url 'ticket_detail' ticket.pk %}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Отмена
                         </a>
-                        <button type="submit" class="btn btn-orange">
+                        <button type="submit" class="btn btn-orange" {% if not technicians %}disabled{% endif %}>
                             <i class="bi bi-check-circle"></i> Назначить техника
                         </button>
                     </div>

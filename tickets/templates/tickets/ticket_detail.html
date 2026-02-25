@@ -59,6 +59,34 @@
                     {% endif %}
                 </div>
 
+                <!-- SLA Progress Bar -->
+                {% if sla_percent is not None %}
+                <div class="mb-3">
+                    <label class="text-muted small d-block mb-1">ПРОГРЕСС SLA</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height: 8px; border-radius: 4px;">
+                            <div class="progress-bar bg-{{ sla_color }}"
+                                 role="progressbar"
+                                 style="width: {{ sla_percent }}%"
+                                 aria-valuenow="{{ sla_percent }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-{{ sla_color }} fw-semibold" style="min-width: 42px;">{{ sla_percent }}%</small>
+                    </div>
+                    {% if is_overdue %}
+                    <small class="text-danger mt-1 d-block">
+                        <i class="bi bi-alarm-fill"></i> Срок выполнения истёк
+                    </small>
+                    {% elif sla_percent >= 75 %}
+                    <small class="text-warning mt-1 d-block">
+                        <i class="bi bi-exclamation-triangle"></i> Срок выполнения скоро истечёт
+                    </small>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <!-- Description -->
                 <div class="mb-3">
                     <label class="text-muted small d-block mb-2">ОПИСАНИЕ</label>
@@ -181,9 +209,10 @@
                 {% endif %}
 
                 {% if can_change_status and object.status != 'closed' %}
-                    <a class="btn btn-success w-100 mb-2" href="{% url 'ticket_close' object.pk %}">
+                    <button class="btn btn-success w-100 mb-2"
+                            data-bs-toggle="modal" data-bs-target="#closeTicketModal">
                         <i class="bi bi-check-circle"></i> Закрыть заявку
-                    </a>
+                    </button>
                 {% endif %}
 
                 <a class="btn btn-outline-secondary w-100 mt-2" href="{% url 'ticket_list' %}">
@@ -268,4 +297,52 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Модальное окно закрытия заявки (акт выполненных работ) -->
+{% if can_change_status and object.status != 'closed' %}
+<div class="modal fade" id="closeTicketModal" tabindex="-1"
+     aria-labelledby="closeTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="closeTicketModalLabel">
+                    <i class="bi bi-clipboard2-check text-success"></i>
+                    Акт выполненных работ — Заявка #{{ object.id }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <form method="post" action="{% url 'ticket_close' object.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>{{ object.title }}</strong><br>
+                        <small>Заявитель: {{ object.reporter.get_full_name|default:object.reporter.username }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resolutionComment" class="form-label fw-semibold">
+                            Описание выполненных работ <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="resolutionComment"
+                                  name="resolution_comment" rows="5"
+                                  placeholder="Опишите, что было сделано: диагностика, замена компонентов, настройки, результат..."
+                                  required></textarea>
+                        <div class="form-text text-muted mt-1">
+                            <i class="bi bi-archive"></i> Описание сохранится в истории заявки
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Подтвердить закрытие
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

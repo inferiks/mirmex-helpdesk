@@ -1,3 +1,4 @@
+import csv
 import json
 from datetime import timedelta
 
@@ -9,6 +10,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import (Avg, Count, DurationField, ExpressionWrapper,
                                F, Q)
 from django.db.models.functions import TruncDate
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -16,7 +18,7 @@ from django.views.generic import (CreateView, DetailView, ListView,
                                    UpdateView, View)
 
 from .forms import (CommentForm, EquipmentForm, ProfileForm, TicketCreateForm,
-                    TicketUpdateForm, UserEditForm)
+                    TicketUpdateForm, UserEditForm, UserRegistrationForm)
 from .models import Comment, Equipment, TicketHistory, Tickets
 
 User = get_user_model()
@@ -120,6 +122,7 @@ class EquipmentUpdateView(LoginRequiredMixin, UpdateView):
 class TicketListView(LoginRequiredMixin, ListView):
     model = Tickets
     template_name = 'tickets/ticket_list.html'
+    paginate_by = 15
 
     def get_queryset(self):
         user = self.request.user
@@ -198,6 +201,30 @@ class TicketListView(LoginRequiredMixin, ListView):
         ])
         context['has_filter'] = has_filter
 
+        # Overdue count
+        now = timezone.now()
+        context['count_overdue'] = base_qs.filter(
+            due_date__lt=now,
+            status__in=['new', 'assigned', 'in_progress']
+        ).count()
+
+        # Query params without 'page' for pagination links
+        params = self.request.GET.copy()
+        params.pop('page', None)
+        context['query_params'] = params.urlencode()
+
+        # Limited page range for pagination widget
+        if context.get('is_paginated'):
+            page_obj = context['page_obj']
+            paginator = context['paginator']
+            current = page_obj.number
+            total = paginator.num_pages
+            start = max(1, current - 3)
+            end = min(total, current + 3)
+            context['page_range'] = range(start, end + 1)
+            context['show_first'] = start > 1
+            context['show_last'] = end < total
+
         return context
 
 
@@ -226,7 +253,104 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
         context['comments'] = ticket.comments.select_related('author').all()
         context['history'] = ticket.history.select_related('changed_by').order_by('timestamp')
         context['comment_form'] = CommentForm()
+
+        # SLA progress bar
+        sla_percent = None
+        sla_color = 'success'
+        if ticket.due_date and ticket.status != ticket.STATUS_CLOSED:
+            now = timezone.now()
+            total_seconds = (ticket.due_date - ticket.created_at).total_seconds()
+            elapsed_seconds = (now - ticket.created_at).total_seconds()
+            if total_seconds > 0:
+                sla_percent = min(100, round(elapsed_seconds / total_seconds * 100))
+                if sla_percent >= 100:
+                    sla_color = 'danger'
+                elif sla_percent >= 75:
+                    sla_color = 'warning'
+                elif sla_percent >= 50:
+                    sla_color = 'info'
+                else:
+                    sla_color = 'success'
+        context['sla_percent'] = sla_percent
+        context['sla_color'] = sla_color
+
         return context
+
+
+class TicketExportCSVView(LoginRequiredMixin, View):
+    """Export filtered tickets as CSV (semicolon-separated, UTF-8 BOM for Excel)."""
+
+    def get(self, request):
+        user = request.user
+
+        if is_admin_or_dispatcher(user):
+            queryset = Tickets.objects.select_related('reporter', 'technician', 'equipment')
+        elif is_technician(user):
+            queryset = Tickets.objects.filter(technician=user).select_related('reporter', 'technician', 'equipment')
+        else:
+            queryset = Tickets.objects.filter(reporter=user).select_related('reporter', 'technician', 'equipment')
+
+        # Apply same filters as TicketListView
+        status_filter = request.GET.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        priority_filter = request.GET.get('priority')
+        if priority_filter:
+            queryset = queryset.filter(priority=priority_filter)
+
+        category_filter = request.GET.get('category')
+        if category_filter:
+            queryset = queryset.filter(category=category_filter)
+
+        technician_filter = request.GET.get('technician')
+        if technician_filter and is_admin_or_dispatcher(user):
+            if technician_filter == 'none':
+                queryset = queryset.filter(technician__isnull=True)
+            else:
+                queryset = queryset.filter(technician_id=technician_filter)
+
+        search_query = request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(id__icontains=search_query)
+            )
+
+        queryset = queryset.order_by('-created_at')
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="tickets_export.csv"'
+        response.write('\ufeff')  # UTF-8 BOM so Excel opens correctly
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow([
+            '#', 'Тема', 'Статус', 'Приоритет', 'Категория',
+            'Заявитель', 'Техник', 'Оборудование',
+            'Создана', 'Срок SLA', 'Закрыта',
+        ])
+
+        status_map = dict(Tickets.STATUS_CHOICES)
+        priority_map = dict(Tickets.PRIORITY_CHOICES)
+        category_map = dict(Tickets.CATEGORY_CHOICES)
+
+        for ticket in queryset:
+            writer.writerow([
+                ticket.pk,
+                ticket.title,
+                status_map.get(ticket.status, ticket.status),
+                priority_map.get(ticket.priority, ticket.priority),
+                category_map.get(ticket.category, ticket.category),
+                (ticket.reporter.get_full_name() or ticket.reporter.username) if ticket.reporter else '',
+                (ticket.technician.get_full_name() or ticket.technician.username) if ticket.technician else '',
+                str(ticket.equipment) if ticket.equipment else '',
+                ticket.created_at.strftime('%d.%m.%Y %H:%M') if ticket.created_at else '',
+                ticket.due_date.strftime('%d.%m.%Y %H:%M') if ticket.due_date else '',
+                ticket.closed_at.strftime('%d.%m.%Y %H:%M') if ticket.closed_at else '',
+            ])
+
+        return response
 
 
 class TicketCreateView(LoginRequiredMixin, CreateView):
@@ -316,7 +440,12 @@ def assign_ticket(request, pk):
             messages.success(request, f'Техник {technician.get_full_name() or technician.username} назначен.')
         return redirect('ticket_detail', pk=pk)
 
-    technicians = User.objects.filter(groups__name='technician')
+    technicians = User.objects.filter(groups__name='technician').annotate(
+        open_count=Count(
+            'assigned_tickets',
+            filter=Q(assigned_tickets__status__in=['new', 'assigned', 'in_progress'])
+        )
+    ).order_by('last_name', 'first_name', 'username')
     return render(request, 'tickets/ticket_assign.html', {
         'ticket': ticket,
         'technicians': technicians,
@@ -345,11 +474,20 @@ def close_ticket(request, pk):
     if not (is_admin_or_dispatcher(request.user) or request.user == ticket.technician):
         raise PermissionDenied
 
+    resolution_comment = request.POST.get('resolution_comment', '').strip()
+
     try:
         ticket.close(changed_by=request.user)
     except ValidationError as e:
         messages.error(request, str(e))
     else:
+        if resolution_comment:
+            TicketHistory.objects.create(
+                ticket=ticket,
+                changed_by=request.user,
+                action=TicketHistory.ACTION_COMMENTED,
+                comment=f'Акт выполненных работ: {resolution_comment}',
+            )
         messages.success(request, "Заявка закрыта.")
 
     return redirect('ticket_detail', pk=pk)
@@ -383,6 +521,47 @@ def add_comment(request, pk):
             messages.success(request, 'Комментарий добавлен.')
 
     return redirect('ticket_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Kanban Board
+# ---------------------------------------------------------------------------
+
+class KanbanBoardView(LoginRequiredMixin, View):
+    template_name = 'tickets/kanban.html'
+
+    def get(self, request):
+        user = request.user
+
+        if is_admin_or_dispatcher(user):
+            base_qs = Tickets.objects.select_related('reporter', 'technician', 'equipment')
+        elif is_technician(user):
+            base_qs = Tickets.objects.filter(technician=user).select_related('reporter', 'technician', 'equipment')
+        else:
+            base_qs = Tickets.objects.filter(reporter=user).select_related('reporter', 'technician', 'equipment')
+
+        # Exclude closed tickets by default (Kanban focus on active work)
+        show_closed = request.GET.get('show_closed') == '1'
+        if not show_closed:
+            base_qs = base_qs.exclude(status='closed')
+
+        base_qs = base_qs.order_by('priority', '-created_at')
+
+        # Map priorities to sort order for display
+        priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+
+        def sort_tickets(qs):
+            return sorted(qs, key=lambda t: (priority_order.get(t.priority, 4), t.pk))
+
+        context = {
+            'col_new': sort_tickets(base_qs.filter(status='new')),
+            'col_assigned': sort_tickets(base_qs.filter(status='assigned')),
+            'col_in_progress': sort_tickets(base_qs.filter(status='in_progress')),
+            'col_closed': sort_tickets(base_qs.filter(status='closed')) if show_closed else [],
+            'show_closed': show_closed,
+            'is_admin_or_dispatcher': is_admin_or_dispatcher(user),
+        }
+        return render(request, self.template_name, context)
 
 
 # ---------------------------------------------------------------------------
@@ -604,6 +783,51 @@ class UserProfileView(LoginRequiredMixin, View):
             'recent_tickets': reported.order_by('-created_at')[:5],
         }
         return render(request, self.template_name, context)
+
+
+# ---------------------------------------------------------------------------
+# User Registration (self-service)
+# ---------------------------------------------------------------------------
+
+class RegisterView(View):
+    template_name = 'registration/register.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('ticket_list')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        form = UserRegistrationForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            from django.contrib.auth import login
+            from django.contrib.auth.models import Group
+
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password1'],
+                first_name=form.cleaned_data.get('first_name', ''),
+                last_name=form.cleaned_data.get('last_name', ''),
+                email=form.cleaned_data.get('email', ''),
+            )
+
+            # Assign reporter role by default
+            reporter_group, _ = Group.objects.get_or_create(name='reporter')
+            user.groups.add(reporter_group)
+
+            login(request, user)
+            messages.success(
+                request,
+                f'Добро пожаловать, {user.get_full_name() or user.username}! '
+                'Аккаунт создан. Вы можете создавать заявки.'
+            )
+            return redirect('ticket_list')
+
+        return render(request, self.template_name, {'form': form})
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ urlpatterns = [
 
     # Tickets
     path('tickets/', views.TicketListView.as_view(), name='ticket_list'),
+    path('tickets/export/', views.TicketExportCSVView.as_view(), name='ticket_export'),
     path('tickets/create/', views.TicketCreateView.as_view(), name='ticket_create'),
     path('tickets/<int:pk>/', views.TicketDetailView.as_view(), name='ticket_detail'),
     path('tickets/<int:pk>/edit/', views.TicketUpdateView.as_view(), name='ticket_update'),
@@ -17,6 +18,9 @@ urlpatterns = [
     path('tickets/<int:pk>/start/', views.start_ticket, name='ticket_start'),
     path('tickets/<int:pk>/close/', views.close_ticket, name='ticket_close'),
     path('tickets/<int:pk>/comment/', views.add_comment, name='ticket_comment'),
+
+    # Kanban board
+    path('kanban/', views.KanbanBoardView.as_view(), name='kanban'),
 
     # Search
     path('search/', views.SearchView.as_view(), name='search'),

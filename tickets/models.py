@@ -17,8 +17,32 @@ class Equipment(models.Model):
         (STATUS_STORAGE, 'На складе'),
     ]
 
+    TYPE_DESKTOP = 'desktop'
+    TYPE_LAPTOP = 'laptop'
+    TYPE_PRINTER = 'printer'
+    TYPE_NETWORK = 'network'
+    TYPE_SERVER = 'server'
+    TYPE_MONITOR = 'monitor'
+    TYPE_OTHER = 'other'
+
+    TYPE_CHOICES = [
+        (TYPE_DESKTOP, 'Настольный ПК'),
+        (TYPE_LAPTOP, 'Ноутбук'),
+        (TYPE_PRINTER, 'Принтер / МФУ'),
+        (TYPE_NETWORK, 'Сетевое оборудование'),
+        (TYPE_SERVER, 'Сервер'),
+        (TYPE_MONITOR, 'Монитор'),
+        (TYPE_OTHER, 'Другое'),
+    ]
+
     serial = models.CharField(max_length=100, unique=True, verbose_name='Серийный номер')
     model = models.CharField(max_length=200, verbose_name='Модель')
+    equipment_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default=TYPE_OTHER,
+        verbose_name='Тип оборудования'
+    )
     location = models.CharField(max_length=200, blank=True, verbose_name='Расположение')
     status = models.CharField(
         max_length=20,
@@ -27,12 +51,26 @@ class Equipment(models.Model):
         verbose_name='Статус'
     )
     purchased_at = models.DateField(null=True, blank=True, verbose_name='Дата приобретения')
+    warranty_until = models.DateField(null=True, blank=True, verbose_name='Гарантия до')
     notes = models.TextField(blank=True, verbose_name='Примечания')
 
     class Meta:
         verbose_name = 'Оборудование'
         verbose_name_plural = 'Оборудование'
         ordering = ['model']
+
+    def warranty_expired(self):
+        """Returns True if warranty has expired."""
+        if self.warranty_until:
+            return timezone.now().date() > self.warranty_until
+        return False
+
+    def warranty_expiring_soon(self):
+        """Returns True if warranty expires within 30 days."""
+        if self.warranty_until and not self.warranty_expired():
+            days_left = (self.warranty_until - timezone.now().date()).days
+            return days_left <= 30
+        return False
 
     def __str__(self):
         return f"{self.model} ({self.serial})"

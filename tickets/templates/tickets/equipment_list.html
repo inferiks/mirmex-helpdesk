@@ -18,14 +18,36 @@
             <div class="row">
                 {% for eq in object_list %}
                 <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm eq-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="flex-grow-1">
                                     <h5 class="text-orange mb-1">{{ eq.model }}</h5>
                                     <small class="text-muted"><i class="bi bi-upc-scan"></i> {{ eq.serial }}</small>
                                 </div>
-                                <span class="status-badge status-{{ eq.status }}">{{ eq.get_status_display }}</span>
+                                <span class="status-badge status-{{ eq.status }} ms-2">{{ eq.get_status_display }}</span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <span class="eq-type-badge eq-type-{{ eq.equipment_type }}">
+                                    <i class="bi bi-{% if eq.equipment_type == 'laptop' %}laptop{% elif eq.equipment_type == 'printer' %}printer{% elif eq.equipment_type == 'server' %}hdd-rack{% elif eq.equipment_type == 'network' %}router{% elif eq.equipment_type == 'monitor' %}display{% else %}pc-display{% endif %}"></i>
+                                    {{ eq.get_equipment_type_display }}
+                                </span>
+                                {% if eq.warranty_until %}
+                                    {% if eq.warranty_expired %}
+                                    <span class="badge bg-danger" title="Гарантия истекла {{ eq.warranty_until|date:'d.m.Y' }}">
+                                        <i class="bi bi-shield-x"></i> Гарантия истекла
+                                    </span>
+                                    {% elif eq.warranty_expiring_soon %}
+                                    <span class="badge bg-warning text-dark" title="Гарантия до {{ eq.warranty_until|date:'d.m.Y' }}">
+                                        <i class="bi bi-shield-exclamation"></i> До {{ eq.warranty_until|date:"d.m.Y" }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-success" title="Гарантия до {{ eq.warranty_until|date:'d.m.Y' }}">
+                                        <i class="bi bi-shield-check"></i> До {{ eq.warranty_until|date:"d.m.Y" }}
+                                    </span>
+                                    {% endif %}
+                                {% endif %}
                             </div>
 
                             {% if eq.location %}
