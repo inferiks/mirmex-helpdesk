@@ -1,0 +1,154 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Мой профиль{% endblock %}
+{% block page_subtitle %}Личная информация и статистика{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-5">
+        <!-- Profile card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-badge"></i> Личные данные
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="profile-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="mb-0">
+                            {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                        </h5>
+                        <small class="text-muted">@{{ user.username }}</small>
+                        <div class="mt-1">
+                            <span class="badge {{ user_role_badge }}">{{ user_role_display }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Имя</label>
+                            <input type="text" name="first_name" class="form-control"
+                                   value="{{ form.first_name.value|default:'' }}"
+                                   placeholder="Имя">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" name="last_name" class="form-control"
+                                   value="{{ form.last_name.value|default:'' }}"
+                                   placeholder="Фамилия">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ form.email.value|default:'' }}"
+                               placeholder="email@mirmex.ru">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Логин</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                        <small class="text-muted">Логин нельзя изменить</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Дата регистрации</label>
+                        <input type="text" class="form-control" value="{{ user.date_joined|date:'d.m.Y' }}" disabled>
+                    </div>
+
+                    <button type="submit" class="btn btn-orange w-100">
+                        <i class="bi bi-save"></i> Сохранить изменения
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <!-- Stats -->
+        <div class="row mb-3">
+            <div class="col-sm-4">
+                <div class="stat-card stat-new text-center">
+                    <div class="stat-value">{{ reported_total }}</div>
+                    <div class="stat-label">Подано заявок</div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card stat-in-progress text-center">
+                    <div class="stat-value">{{ reported_open }}</div>
+                    <div class="stat-label">Открытых</div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card stat-closed text-center">
+                    <div class="stat-value">{{ reported_closed }}</div>
+                    <div class="stat-label">Закрытых</div>
+                </div>
+            </div>
+        </div>
+
+        {% if assigned_total > 0 %}
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-person-check"></i> Назначено мне</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h4 text-orange mb-0">{{ assigned_total }}</div>
+                        <small class="text-muted">Всего</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-primary mb-0">{{ assigned_open }}</div>
+                        <small class="text-muted">В работе</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-success mb-0">{{ assigned_closed }}</div>
+                        <small class="text-muted">Закрытых</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent tickets -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history"></i> Мои последние заявки
+            </div>
+            <div class="card-body p-2">
+                {% if recent_tickets %}
+                    {% for ticket in recent_tickets %}
+                    <div class="ticket-item">
+                        <a href="{% url 'ticket_detail' ticket.pk %}" class="ticket-title">
+                            #{{ ticket.pk }} — {{ ticket.title }}
+                        </a>
+                        <div class="ticket-meta mt-1">
+                            <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+                            <span><i class="bi bi-calendar"></i> {{ ticket.created_at|date:"d.m.Y" }}</span>
+                            <span class="ms-auto">
+                                <span class="status-badge status-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state py-3">
+                        <i class="bi bi-inbox"></i>
+                        <p>Заявок ещё нет</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Kanban{% endblock %}
+{% block page_subtitle %}Визуальная доска заявок{% endblock %}
+
+{% block extra_head %}
+<style>
+.kanban-board {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+.kanban-column {
+    flex: 0 0 280px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 0;
+    min-height: 200px;
+}
+
+.kanban-col-header {
+    padding: 10px 14px;
+    border-radius: 10px 10px 0 0;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.kanban-col-new     { background: #fee2e2; color: #991b1b; }
+.kanban-col-assigned { background: #fed7aa; color: #9a3412; }
+.kanban-col-progress { background: #dbeafe; color: #1e40af; }
+.kanban-col-closed  { background: #d1fae5; color: #065f46; }
+
+.kanban-cards {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 80px;
+}
+
+.kanban-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    border-left: 4px solid var(--primary-orange, #FF6600);
+    transition: all 0.15s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.kanban-card:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+    transform: translateY(-2px);
+    color: inherit;
+}
+
+.kanban-card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2D3748;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.kanban-card-title:hover { color: #FF6600; }
+
+.kanban-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.kc-priority-critical { border-left-color: #ef4444 !important; }
+.kc-priority-high     { border-left-color: #f97316 !important; }
+.kc-priority-medium   { border-left-color: #FF6600 !important; }
+.kc-priority-low      { border-left-color: #94a3b8 !important; }
+
+.kanban-empty {
+    padding: 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.82rem;
+}
+
+.kanban-empty i { font-size: 1.8rem; display: block; margin-bottom: 6px; opacity: 0.5; }
+
+/* Responsive scroll hint */
+@media (max-width: 768px) {
+    .kanban-board {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .kanban-column { flex: 0 0 240px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Controls -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2">
+        <a href="{% url 'ticket_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-list-ul"></i> Список
+        </a>
+        <a href="{% url 'kanban' %}" class="btn btn-orange btn-sm">
+            <i class="bi bi-kanban"></i> Kanban
+        </a>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        {% if show_closed %}
+        <a href="{% url 'kanban' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-eye-slash"></i> Скрыть закрытые
+        </a>
+        {% else %}
+        <a href="{% url 'kanban' %}?show_closed=1" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-eye"></i> Показать закрытые
+        </a>
+        {% endif %}
+
+        {% if is_admin_or_dispatcher %}
+        <a href="{% url 'ticket_create' %}" class="btn btn-orange btn-sm">
+            <i class="bi bi-plus"></i> Новая заявка
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <small class="text-muted me-1"><i class="bi bi-info-circle"></i> Приоритет:</small>
+    <span class="priority-badge priority-critical">Критический</span>
+    <span class="priority-badge priority-high">Высокий</span>
+    <span class="priority-badge priority-medium">Средний</span>
+    <span class="priority-badge priority-low">Низкий</span>
+</div>
+
+<!-- Kanban Board -->
+<div class="kanban-board">
+    <!-- Новые -->
+    <div class="kanban-column">
+        <div class="kanban-col-header kanban-col-new">
+            <span><i class="bi bi-arrow-down-circle"></i> Новые</span>
+            <span class="badge bg-danger rounded-pill">{{ col_new|length }}</span>
+        </div>
+        <div class="kanban-cards">
+            {% if col_new %}
+                {% for ticket in col_new %}
+                <a href="{% url 'ticket_detail' ticket.pk %}" class="kanban-card kc-priority-{{ ticket.priority }}">
+                    <div class="kanban-card-title">#{{ ticket.id }} — {{ ticket.title|truncatechars:55 }}</div>
+                    <div class="kanban-card-meta">
+                        <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+                        {% if ticket.due_date and ticket.is_overdue %}
+                        <span class="badge bg-danger" title="Просрочена"><i class="bi bi-alarm-fill"></i></span>
+                        {% endif %}
+                        <small class="text-muted ms-auto">{{ ticket.created_at|date:"d.m" }}</small>
+                    </div>
+                    {% if ticket.reporter %}
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-person"></i> {{ ticket.reporter.get_full_name|default:ticket.reporter.username }}
+                    </small>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+            <div class="kanban-empty"><i class="bi bi-inbox"></i>Нет заявок</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Назначена -->
+    <div class="kanban-column">
+        <div class="kanban-col-header kanban-col-assigned">
+            <span><i class="bi bi-hourglass-split"></i> Назначена</span>
+            <span class="badge bg-warning text-dark rounded-pill">{{ col_assigned|length }}</span>
+        </div>
+        <div class="kanban-cards">
+            {% if col_assigned %}
+                {% for ticket in col_assigned %}
+                <a href="{% url 'ticket_detail' ticket.pk %}" class="kanban-card kc-priority-{{ ticket.priority }}">
+                    <div class="kanban-card-title">#{{ ticket.id }} — {{ ticket.title|truncatechars:55 }}</div>
+                    <div class="kanban-card-meta">
+                        <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+                        {% if ticket.due_date and ticket.is_overdue %}
+                        <span class="badge bg-danger" title="Просрочена"><i class="bi bi-alarm-fill"></i></span>
+                        {% endif %}
+                        <small class="text-muted ms-auto">{{ ticket.created_at|date:"d.m" }}</small>
+                    </div>
+                    {% if ticket.technician %}
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-person-check"></i> {{ ticket.technician.get_full_name|default:ticket.technician.username }}
+                    </small>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+            <div class="kanban-empty"><i class="bi bi-inbox"></i>Нет заявок</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- В работе -->
+    <div class="kanban-column">
+        <div class="kanban-col-header kanban-col-progress">
+            <span><i class="bi bi-arrow-clockwise"></i> В работе</span>
+            <span class="badge bg-primary rounded-pill">{{ col_in_progress|length }}</span>
+        </div>
+        <div class="kanban-cards">
+            {% if col_in_progress %}
+                {% for ticket in col_in_progress %}
+                <a href="{% url 'ticket_detail' ticket.pk %}" class="kanban-card kc-priority-{{ ticket.priority }}">
+                    <div class="kanban-card-title">#{{ ticket.id }} — {{ ticket.title|truncatechars:55 }}</div>
+                    <div class="kanban-card-meta">
+                        <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+                        {% if ticket.due_date and ticket.is_overdue %}
+                        <span class="badge bg-danger" title="Просрочена"><i class="bi bi-alarm-fill"></i></span>
+                        {% endif %}
+                        <small class="text-muted ms-auto">{{ ticket.created_at|date:"d.m" }}</small>
+                    </div>
+                    {% if ticket.technician %}
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-person-check"></i> {{ ticket.technician.get_full_name|default:ticket.technician.username }}
+                    </small>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+            <div class="kanban-empty"><i class="bi bi-inbox"></i>Нет заявок</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Закрытые (optional) -->
+    {% if show_closed %}
+    <div class="kanban-column">
+        <div class="kanban-col-header kanban-col-closed">
+            <span><i class="bi bi-check-circle"></i> Закрытые</span>
+            <span class="badge bg-success rounded-pill">{{ col_closed|length }}</span>
+        </div>
+        <div class="kanban-cards">
+            {% if col_closed %}
+                {% for ticket in col_closed %}
+                <a href="{% url 'ticket_detail' ticket.pk %}" class="kanban-card kc-priority-{{ ticket.priority }}" style="opacity: 0.75;">
+                    <div class="kanban-card-title">#{{ ticket.id }} — {{ ticket.title|truncatechars:55 }}</div>
+                    <div class="kanban-card-meta">
+                        <span class="category-badge"><i class="bi bi-tag"></i> {{ ticket.get_category_display }}</span>
+                        <small class="text-muted ms-auto">{{ ticket.closed_at|date:"d.m" }}</small>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+            <div class="kanban-empty"><i class="bi bi-inbox"></i>Нет заявок</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

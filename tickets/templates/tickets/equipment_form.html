@@ -1,0 +1,125 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}{% if is_create %}Регистрация нового оборудования{% else %}Изменение данных об оборудовании{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header {% if is_create %}bg-orange text-white{% endif %}">
+                <h4 class="mb-0">
+                    <i class="bi bi-{% if is_create %}plus-circle{% else %}pencil{% endif %}"></i>
+                    {{ form_title }}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <!-- Model + Serial -->
+                    <div class="row mb-3">
+                        <div class="col-md-7">
+                            <label for="{{ form.model.id_for_label }}" class="form-label">
+                                Модель <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="model" id="{{ form.model.id_for_label }}"
+                                   class="form-control {% if form.model.errors %}is-invalid{% endif %}"
+                                   value="{{ form.model.value|default:'' }}"
+                                   placeholder="Например: Dell Latitude 5520" required>
+                            {% if form.model.errors %}<div class="invalid-feedback">{{ form.model.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <label for="{{ form.serial.id_for_label }}" class="form-label">
+                                Серийный номер <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="serial" id="{{ form.serial.id_for_label }}"
+                                   class="form-control {% if form.serial.errors %}is-invalid{% endif %}"
+                                   value="{{ form.serial.value|default:'' }}"
+                                   placeholder="SN123456789" required>
+                            {% if form.serial.errors %}<div class="invalid-feedback">{{ form.serial.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Type + Status + Location -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.equipment_type.id_for_label }}" class="form-label">Тип оборудования</label>
+                            <select name="equipment_type" id="{{ form.equipment_type.id_for_label }}"
+                                    class="form-select {% if form.equipment_type.errors %}is-invalid{% endif %}">
+                                {% for val, label in form.fields.equipment_type.choices %}
+                                <option value="{{ val }}" {% if form.equipment_type.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.equipment_type.errors %}<div class="invalid-feedback">{{ form.equipment_type.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Статус</label>
+                            <select name="status" id="{{ form.status.id_for_label }}"
+                                    class="form-select {% if form.status.errors %}is-invalid{% endif %}">
+                                {% for val, label in form.fields.status.choices %}
+                                <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.status.errors %}<div class="invalid-feedback">{{ form.status.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">Расположение</label>
+                            <input type="text" name="location" id="{{ form.location.id_for_label }}"
+                                   class="form-control {% if form.location.errors %}is-invalid{% endif %}"
+                                   value="{{ form.location.value|default:'' }}"
+                                   placeholder="Офис 3, стол 12">
+                            {% if form.location.errors %}<div class="invalid-feedback">{{ form.location.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Purchased at + Warranty until -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.purchased_at.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar-plus text-muted"></i> Дата покупки
+                            </label>
+                            <input type="date" name="purchased_at" id="{{ form.purchased_at.id_for_label }}"
+                                   class="form-control {% if form.purchased_at.errors %}is-invalid{% endif %}"
+                                   value="{{ form.purchased_at.value|default:'' }}">
+                            {% if form.purchased_at.errors %}<div class="invalid-feedback">{{ form.purchased_at.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.warranty_until.id_for_label }}" class="form-label">
+                                <i class="bi bi-shield-check text-muted"></i> Гарантия до
+                            </label>
+                            <input type="date" name="warranty_until" id="{{ form.warranty_until.id_for_label }}"
+                                   class="form-control {% if form.warranty_until.errors %}is-invalid{% endif %}"
+                                   value="{{ form.warranty_until.value|default:'' }}">
+                            {% if form.warranty_until.errors %}<div class="invalid-feedback">{{ form.warranty_until.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Примечания</label>
+                        <textarea name="notes" id="{{ form.notes.id_for_label }}"
+                                  class="form-control {% if form.notes.errors %}is-invalid{% endif %}"
+                                  rows="3" placeholder="Дополнительная информация об оборудовании...">{{ form.notes.value|default:'' }}</textarea>
+                        {% if form.notes.errors %}<div class="invalid-feedback">{{ form.notes.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-orange">
+                            <i class="bi bi-save"></i>
+                            {% if is_create %}Добавить{% else %}Сохранить{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

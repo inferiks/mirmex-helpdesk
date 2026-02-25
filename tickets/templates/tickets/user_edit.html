@@ -1,0 +1,98 @@
+{% extends "base_generic.html" %}
+
+{% block page_title %}Редактировать пользователя{% endblock %}
+{% block page_subtitle %}{{ target_user.username }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm"><i class="bi bi-person-circle"></i></div>
+                    <div>
+                        <div class="fw-bold">{{ target_user.get_full_name|default:target_user.username }}</div>
+                        <small class="text-muted">@{{ target_user.username }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Имя</label>
+                            <input type="text" name="first_name" class="form-control"
+                                   value="{{ form.first_name.value|default:'' }}" placeholder="Имя">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" name="last_name" class="form-control"
+                                   value="{{ form.last_name.value|default:'' }}" placeholder="Фамилия">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ form.email.value|default:'' }}" placeholder="email@mirmex.ru">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Роль</label>
+                        <select name="role" class="form-select">
+                            {% for val, label in form.fields.role.choices %}
+                            <option value="{{ val }}" {% if form.role.value == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            Пользователь — создаёт заявки; Техник — выполняет; Диспетчер — управляет; Администратор — полный доступ.
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                                   {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                Учётная запись активна
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                        <button type="submit" class="btn btn-orange flex-grow-1">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- User stats -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-bar-chart"></i> Статистика</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="h4 text-orange mb-0">{{ target_user.reported_tickets.count }}</div>
+                        <small class="text-muted">Подано заявок</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 text-primary mb-0">{{ target_user.assigned_tickets.count }}</div>
+                        <small class="text-muted">Назначено</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

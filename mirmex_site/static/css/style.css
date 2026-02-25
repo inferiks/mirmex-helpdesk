@@ -112,8 +112,12 @@ body > .d-flex {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     color: var(--white);
+    flex-shrink: 0;
+    text-transform: uppercase;
 }
 
 .user-name {
@@ -525,9 +529,265 @@ body > .d-flex {
     color: #9a3412;
 }
 
-.status-sorage {
+.status-sorage,
+.status-storage {
     background-color: #e5e7eb;
     color: #374151;
+}
+
+/* ========================================================
+   Priority badges
+   ======================================================== */
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.priority-low {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.priority-medium {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.priority-high {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+.priority-critical {
+    background-color: #fee2e2;
+    color: #991b1b;
+    animation: critical-pulse 2s infinite;
+}
+
+@keyframes critical-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
+
+/* Category badge */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background-color: #f1f5f9;
+    color: #475569;
+    white-space: nowrap;
+}
+
+/* Ticket priority left border */
+.ticket-priority-critical { border-left-color: #ef4444 !important; }
+.ticket-priority-high     { border-left-color: #f97316 !important; }
+.ticket-priority-medium   { border-left-color: var(--primary-orange) !important; }
+.ticket-priority-low      { border-left-color: #94a3b8 !important; }
+
+/* ========================================================
+   History timeline
+   ======================================================== */
+.history-timeline {
+    padding: 8px 0;
+}
+
+.history-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 15px;
+    position: relative;
+}
+
+.history-item + .history-item::before {
+    content: '';
+    position: absolute;
+    left: 26px;
+    top: 0;
+    height: 8px;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.history-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.hi-created  { background: #d1fae5; color: #065f46; }
+.hi-status   { background: #dbeafe; color: #1e40af; }
+.hi-assigned { background: #fed7aa; color: #9a3412; }
+.hi-comment  { background: #e5e7eb; color: #374151; }
+.hi-edit     { background: #fef3c7; color: #92400e; }
+
+.history-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.history-comment {
+    font-size: 0.83rem;
+    color: var(--dark-gray);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.history-meta {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* ========================================================
+   Comments
+   ======================================================== */
+.comment-item {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.comment-time {
+    font-size: 0.75rem;
+}
+
+.comment-body {
+    font-size: 0.88rem;
+    color: var(--dark-gray);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* ========================================================
+   Profile avatar
+   ======================================================== */
+.profile-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-orange), #ff8533);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-orange), #ff8533);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+/* ========================================================
+   Top bar search
+   ======================================================== */
+.topbar-search {
+    width: 200px;
+    font-size: 0.85rem;
+    border-color: var(--border-color);
+}
+
+.topbar-search:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 2px rgba(255,102,0,0.1);
+    width: 240px;
+}
+
+/* ========================================================
+   Equipment list card enhancement
+   ======================================================== */
+.equipment-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.eq-card {
+    transition: all 0.2s ease;
+}
+
+.eq-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+}
+
+/* Equipment type badges */
+.eq-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+.eq-type-desktop  { background-color: #dbeafe; color: #1e40af; }
+.eq-type-laptop   { background-color: #d1fae5; color: #065f46; }
+.eq-type-printer  { background-color: #fef3c7; color: #92400e; }
+.eq-type-network  { background-color: #e0e7ff; color: #3730a3; }
+.eq-type-server   { background-color: #f3e8ff; color: #6b21a8; }
+.eq-type-monitor  { background-color: #f0fdf4; color: #166534; }
+.eq-type-other    { background-color: #f1f5f9; color: #475569; }
+
+/* ========================================================
+   Responsive adjustments for new elements
+   ======================================================== */
+@media (max-width: 768px) {
+    .ticket-meta {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .topbar-search {
+        display: none;
+    }
 }
 
 /* Кнопки */
@@ -634,6 +894,90 @@ body > .d-flex {
 .empty-state p {
     margin: 10px 0;
     font-size: 0.95rem;
+}
+
+/* ========================================================
+   Overdue stat card
+   ======================================================== */
+.stat-card.stat-overdue {
+    border-left: 4px solid #dc2626;
+    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+    cursor: default;
+}
+
+.stat-card.stat-overdue .stat-value { color: #dc2626; }
+.stat-card.stat-overdue .stat-icon { color: #dc2626; }
+
+/* ========================================================
+   Pagination
+   ======================================================== */
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--white);
+}
+
+.pagination .page-link {
+    color: var(--primary-orange);
+    border-color: var(--border-color);
+    font-size: 0.85rem;
+    padding: 5px 10px;
+}
+
+.pagination .page-link:hover {
+    background-color: #fff7ed;
+    border-color: var(--primary-orange);
+    color: var(--primary-orange-hover);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #94a3b8;
+}
+
+/* ========================================================
+   Technician selection in assign form
+   ======================================================== */
+.tech-option {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-color: var(--border-color) !important;
+}
+
+.tech-option:hover {
+    background-color: #fff7ed;
+    border-color: var(--primary-orange) !important;
+}
+
+.tech-option:has(input:checked) {
+    background-color: #fff7ed;
+    border-color: var(--primary-orange) !important;
+    box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.15);
+}
+
+/* ========================================================
+   Toast notifications
+   ======================================================== */
+.toast {
+    min-width: 280px;
+    max-width: 420px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    font-size: 0.88rem;
+}
+
+.toast-body {
+    padding: 12px 14px;
+    color: var(--dark-gray);
+    line-height: 1.4;
+}
+
+/* ========================================================
+   SLA progress bar
+   ======================================================== */
+.progress {
+    background-color: #e2e8f0;
 }
 
 /* Адаптивность */
