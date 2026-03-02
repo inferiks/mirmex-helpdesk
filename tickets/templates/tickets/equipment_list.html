@@ -30,7 +30,7 @@
 
                             <div class="d-flex flex-wrap gap-1 mb-2">
                                 <span class="eq-type-badge eq-type-{{ eq.equipment_type }}">
-                                    <i class="bi bi-{% if eq.equipment_type == 'laptop' %}laptop{% elif eq.equipment_type == 'printer' %}printer{% elif eq.equipment_type == 'server' %}hdd-rack{% elif eq.equipment_type == 'network' %}router{% elif eq.equipment_type == 'monitor' %}display{% else %}pc-display{% endif %}"></i>
+                                    <i class="bi bi-{% if eq.equipment_type == 'server' %}hdd-rack{% elif eq.equipment_type == 'network' %}router{% elif eq.equipment_type == 'peripheral' %}printer{% elif eq.equipment_type == 'software' %}floppy{% elif eq.equipment_type == 'mobile' %}phone{% elif eq.equipment_type == 'workstation' %}pc-display{% else %}box{% endif %}"></i>
                                     {{ eq.get_equipment_type_display }}
                                 </span>
                                 {% if eq.warranty_until %}

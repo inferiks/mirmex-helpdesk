@@ -1,0 +1,286 @@
+{% extends 'base_generic.html' %}
+
+{% block title %}О программном продукте — Mirmex HelpDesk{% endblock %}
+
+{% block page_title %}О программном продукте{% endblock %}
+{% block page_subtitle %}Описание системы, возможности и технологии{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+
+        <!-- Hero-карточка -->
+        <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);">
+            <div class="card-body p-4 d-flex align-items-center gap-4">
+                <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
+                     style="width:72px;height:72px;background:rgba(255,107,53,.15);">
+                    <i class="bi bi-headset fs-1 text-orange"></i>
+                </div>
+                <div>
+                    <h2 class="text-white fw-bold mb-1">Mirmex HelpDesk</h2>
+                    <p class="text-secondary mb-0" style="font-size:.95rem;">
+                        Внутренняя система управления заявками технической поддержки
+                        для IT-отделов малого и среднего бизнеса.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accordion с разделами -->
+        <div class="accordion accordion-flush" id="aboutAccordion">
+
+            <!-- 1. Что такое система -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-what"
+                                aria-expanded="true"
+                                aria-controls="section-what">
+                            <i class="bi bi-info-circle me-2 text-orange"></i>
+                            Что такое Mirmex HelpDesk?
+                        </button>
+                    </h2>
+                    <div id="section-what" class="accordion-collapse collapse show" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <p>
+                                <strong>Mirmex HelpDesk</strong> — это веб-приложение для централизованного учёта
+                                и обработки заявок технической поддержки внутри организации.
+                            </p>
+                            <p class="mb-0">
+                                Система позволяет пользователям создавать обращения по любым IT-проблемам,
+                                а специалистам — принимать их в работу, отслеживать статус и фиксировать
+                                результат. Вся история изменений сохраняется автоматически, что упрощает
+                                контроль качества поддержки и аналитику.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Для кого предназначена -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-roles"
+                                aria-expanded="false"
+                                aria-controls="section-roles">
+                            <i class="bi bi-people me-2 text-orange"></i>
+                            Для кого предназначена система?
+                        </button>
+                    </h2>
+                    <div id="section-roles" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <p class="mb-3">В системе предусмотрено четыре роли с различным уровнем доступа:</p>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="d-flex gap-3 p-3 rounded-3" style="background:rgba(255,107,53,.07);">
+                                        <i class="bi bi-shield-check fs-4 text-orange flex-shrink-0"></i>
+                                        <div>
+                                            <div class="fw-semibold">Администратор</div>
+                                            <div class="text-muted small">Полный доступ: управление пользователями,
+                                                ролями, отчёты, все заявки.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="d-flex gap-3 p-3 rounded-3" style="background:rgba(13,202,240,.07);">
+                                        <i class="bi bi-headset fs-4 text-info flex-shrink-0"></i>
+                                        <div>
+                                            <div class="fw-semibold">Диспетчер</div>
+                                            <div class="text-muted small">Назначает заявки технику, видит все
+                                                обращения, работает с отчётами.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="d-flex gap-3 p-3 rounded-3" style="background:rgba(25,135,84,.07);">
+                                        <i class="bi bi-wrench-adjustable fs-4 text-success flex-shrink-0"></i>
+                                        <div>
+                                            <div class="fw-semibold">Техник</div>
+                                            <div class="text-muted small">Берёт заявки в работу, комментирует
+                                                и закрывает их по завершении.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="d-flex gap-3 p-3 rounded-3" style="background:rgba(108,117,125,.07);">
+                                        <i class="bi bi-person fs-4 text-secondary flex-shrink-0"></i>
+                                        <div>
+                                            <div class="fw-semibold">Заявитель</div>
+                                            <div class="text-muted small">Создаёт заявки, следит за их статусом
+                                                и добавляет комментарии.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Основные возможности -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-features"
+                                aria-expanded="false"
+                                aria-controls="section-features">
+                            <i class="bi bi-stars me-2 text-orange"></i>
+                            Основные возможности
+                        </button>
+                    </h2>
+                    <div id="section-features" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <ul class="list-unstyled mb-0">
+                                {% for feature in features %}
+                                <li class="d-flex align-items-start gap-2 mb-2">
+                                    <i class="bi bi-check-circle-fill text-orange mt-1 flex-shrink-0"></i>
+                                    <span>{{ feature }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Рабочий процесс заявки -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-workflow"
+                                aria-expanded="false"
+                                aria-controls="section-workflow">
+                            <i class="bi bi-arrow-right-circle me-2 text-orange"></i>
+                            Жизненный цикл заявки
+                        </button>
+                    </h2>
+                    <div id="section-workflow" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <p class="mb-3">Каждая заявка проходит строго определённые этапы:</p>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                <span class="badge rounded-pill px-3 py-2" style="background:#6c757d;font-size:.85rem;">
+                                    <i class="bi bi-circle me-1"></i>Новая
+                                </span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge rounded-pill px-3 py-2" style="background:#0d6efd;font-size:.85rem;">
+                                    <i class="bi bi-person-check me-1"></i>Назначена
+                                </span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge rounded-pill px-3 py-2" style="background:#fd7e14;font-size:.85rem;">
+                                    <i class="bi bi-tools me-1"></i>В работе
+                                </span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge rounded-pill px-3 py-2" style="background:#198754;font-size:.85rem;">
+                                    <i class="bi bi-check-circle me-1"></i>Закрыта
+                                </span>
+                            </div>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                <li class="mb-1"><strong class="text-body">Новая</strong> — заявка создана заявителем и ожидает назначения.</li>
+                                <li class="mb-1"><strong class="text-body">Назначена</strong> — диспетчер или администратор выбрал ответственного техника.</li>
+                                <li class="mb-1"><strong class="text-body">В работе</strong> — техник принял заявку и ведёт устранение проблемы.</li>
+                                <li><strong class="text-body">Закрыта</strong> — проблема решена, заявка зафиксирована с итоговым комментарием.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Технологии -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-tech"
+                                aria-expanded="false"
+                                aria-controls="section-tech">
+                            <i class="bi bi-cpu me-2 text-orange"></i>
+                            Технологии и стек
+                        </button>
+                    </h2>
+                    <div id="section-tech" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <div class="row g-3">
+                                {% for tech in tech_stack %}
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 h-100"
+                                         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
+                                        <i class="bi {{ tech.icon }} fs-4 flex-shrink-0" style="color:{{ tech.color }};"></i>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size:.9rem;">{{ tech.name }}</div>
+                                            <div class="text-muted" style="font-size:.78rem;">{{ tech.desc }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Быстрый старт -->
+            <div class="card border-0 shadow-sm mb-3 overflow-hidden">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section-start"
+                                aria-expanded="false"
+                                aria-controls="section-start">
+                            <i class="bi bi-rocket-takeoff me-2 text-orange"></i>
+                            Как начать работу?
+                        </button>
+                    </h2>
+                    <div id="section-start" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                        <div class="accordion-body pt-0">
+                            <ol class="ps-3 mb-0">
+                                <li class="mb-2">
+                                    <strong>Создайте заявку</strong> — нажмите
+                                    <a href="{% url 'ticket_create' %}" class="text-orange text-decoration-none">«Создать заявку»</a>
+                                    и опишите проблему как можно подробнее.
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Отслеживайте статус</strong> — в разделе
+                                    <a href="{% url 'ticket_list' %}" class="text-orange text-decoration-none">«Список заявок»</a>
+                                    видны все ваши обращения и их текущий статус.
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Добавляйте комментарии</strong> — уточняйте детали прямо в карточке заявки;
+                                    техник получит актуальную информацию.
+                                </li>
+                                <li>
+                                    <strong>Просматривайте историю</strong> — каждое изменение фиксируется:
+                                    кто, когда и что сделал с заявкой.
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /accordion -->
+
+        <!-- Версия -->
+        <p class="text-center text-muted small mt-3 mb-0">
+            Mirmex HelpDesk &mdash; внутренняя разработка &middot; 2025
+        </p>
+
+    </div>
+</div>
+{% endblock %}

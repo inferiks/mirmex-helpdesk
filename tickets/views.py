@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (CreateView, DetailView, ListView,
-                                   UpdateView, View)
+                                   TemplateView, UpdateView, View)
 
 from .forms import (CommentForm, EquipmentForm, ProfileForm, TicketCreateForm,
                     TicketUpdateForm, UserEditForm, UserRegistrationForm)
@@ -920,3 +920,36 @@ def user_edit(request, pk):
         'form': form,
         'target_user': target_user,
     })
+
+
+class AboutView(LoginRequiredMixin, TemplateView):
+    template_name = 'tickets/about.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['features'] = [
+            'Создание и обработка заявок с выбором приоритета, категории и оборудования',
+            'Ролевая система доступа: администратор, диспетчер, техник, заявитель',
+            'Назначение ответственного техника и контроль исполнения',
+            'Kanban-доска для визуального отслеживания потока заявок',
+            'Полная история изменений по каждой заявке (аудит)',
+            'Комментарии к заявке для уточнения деталей',
+            'Учёт оборудования с привязкой к заявкам',
+            'Аналитика и отчёты: статистика по статусам, категориям, приоритетам',
+            'Экспорт заявок в CSV для анализа в Excel',
+            'SLA-индикатор: визуальный прогресс-бар срока выполнения',
+            'Поиск по заявкам с фильтрацией',
+            'Адаптивный интерфейс на Bootstrap 5',
+        ]
+        ctx['tech_stack'] = [
+            {'name': 'Python 3.12', 'desc': 'Язык программирования', 'icon': 'bi-filetype-py', 'color': '#3572a5'},
+            {'name': 'Django 5.2', 'desc': 'Веб-фреймворк', 'icon': 'bi-globe2', 'color': '#092e20'},
+            {'name': 'PostgreSQL', 'desc': 'Реляционная СУБД', 'icon': 'bi-database', 'color': '#336791'},
+            {'name': 'Bootstrap 5', 'desc': 'UI-фреймворк', 'icon': 'bi-bootstrap', 'color': '#7952b3'},
+            {'name': 'Bootstrap Icons', 'desc': 'Иконочный шрифт', 'icon': 'bi-emoji-smile', 'color': '#fd7e14'},
+            {'name': 'WhiteNoise', 'desc': 'Раздача статики', 'icon': 'bi-hdd-stack', 'color': '#6c757d'},
+            {'name': 'Gunicorn', 'desc': 'WSGI-сервер', 'icon': 'bi-server', 'color': '#499848'},
+            {'name': 'python-decouple', 'desc': 'Управление настройками', 'icon': 'bi-gear', 'color': '#adb5bd'},
+            {'name': 'Railway', 'desc': 'Облачный хостинг', 'icon': 'bi-cloud-arrow-up', 'color': '#0b0d0e'},
+        ]
+        return ctx

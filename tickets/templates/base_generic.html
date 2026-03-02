@@ -103,6 +103,13 @@
                     </a>
                     {% endif %}
                 </div>
+                <div class="nav-section-title">Справка</div>
+                <div class="nav-section">
+                    <a href="{% url 'about' %}" class="nav-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                        <i class="bi bi-info-circle"></i>
+                        <span>О программном продукте</span>
+                    </a>
+                </div>
             </nav>
 
             {% if user.is_authenticated %}

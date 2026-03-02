@@ -17,21 +17,21 @@ class Equipment(models.Model):
         (STATUS_STORAGE, 'На складе'),
     ]
 
-    TYPE_DESKTOP = 'desktop'
-    TYPE_LAPTOP = 'laptop'
-    TYPE_PRINTER = 'printer'
-    TYPE_NETWORK = 'network'
+    TYPE_WORKSTATION = 'workstation'
     TYPE_SERVER = 'server'
-    TYPE_MONITOR = 'monitor'
+    TYPE_NETWORK = 'network'
+    TYPE_PERIPHERAL = 'peripheral'
+    TYPE_SOFTWARE = 'software'
+    TYPE_MOBILE = 'mobile'
     TYPE_OTHER = 'other'
 
     TYPE_CHOICES = [
-        (TYPE_DESKTOP, 'Настольный ПК'),
-        (TYPE_LAPTOP, 'Ноутбук'),
-        (TYPE_PRINTER, 'Принтер / МФУ'),
-        (TYPE_NETWORK, 'Сетевое оборудование'),
+        (TYPE_WORKSTATION, 'Рабочая станция'),
         (TYPE_SERVER, 'Сервер'),
-        (TYPE_MONITOR, 'Монитор'),
+        (TYPE_NETWORK, 'Сеть'),
+        (TYPE_PERIPHERAL, 'Периферийное устройство'),
+        (TYPE_SOFTWARE, 'Программное обеспечение'),
+        (TYPE_MOBILE, 'Мобильное устройство'),
         (TYPE_OTHER, 'Другое'),
     ]
 
@@ -101,17 +101,19 @@ class Tickets(models.Model):
         (PRIORITY_CRITICAL, 'Критический'),
     ]
 
-    CATEGORY_HARDWARE = 'hardware'
-    CATEGORY_SOFTWARE = 'software'
-    CATEGORY_NETWORK = 'network'
-    CATEGORY_PRINTER = 'printer'
+    CATEGORY_INCIDENT = 'incident'
+    CATEGORY_SERVICE_REQUEST = 'service_request'
+    CATEGORY_CONSULTATION = 'consultation'
+    CATEGORY_CHANGE_REQUEST = 'change_request'
+    CATEGORY_ADMIN_REQUEST = 'admin_request'
     CATEGORY_OTHER = 'other'
 
     CATEGORY_CHOICES = [
-        (CATEGORY_HARDWARE, 'Железо'),
-        (CATEGORY_SOFTWARE, 'Программное обеспечение'),
-        (CATEGORY_NETWORK, 'Сеть'),
-        (CATEGORY_PRINTER, 'Принтер / МФУ'),
+        (CATEGORY_INCIDENT, 'Инцидент'),
+        (CATEGORY_SERVICE_REQUEST, 'Запрос на обслуживание'),
+        (CATEGORY_CONSULTATION, 'Консультация'),
+        (CATEGORY_CHANGE_REQUEST, 'Запрос на изменение'),
+        (CATEGORY_ADMIN_REQUEST, 'Запрос к администратору'),
         (CATEGORY_OTHER, 'Другое'),
     ]
 

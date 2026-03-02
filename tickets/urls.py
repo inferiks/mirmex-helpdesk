@@ -34,4 +34,7 @@ urlpatterns = [
     # User management
     path('users/', views.UserManagementView.as_view(), name='user_list'),
     path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
+
+    # About
+    path('about/', views.AboutView.as_view(), name='about'),
 ]
