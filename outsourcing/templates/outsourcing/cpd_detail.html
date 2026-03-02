@@ -1,0 +1,83 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Цены контрагентов №{{ object.number }}{% endblock %}
+{% block page_title %}Цены контрагентов №{{ object.number }}{% endblock %}
+{% block page_subtitle %}от {{ object.date|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Реквизиты документа</span>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cpd_edit' object.pk %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i> Редактировать
+            </a>
+            <a href="{% url 'cpd_delete' object.pk %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Номер</dt>
+            <dd class="col-sm-9">{{ object.number }}</dd>
+            <dt class="col-sm-3">Дата</dt>
+            <dd class="col-sm-9">{{ object.date|date:"d.m.Y" }}</dd>
+            <dt class="col-sm-3">Контрагент</dt>
+            <dd class="col-sm-9">{{ object.counterparty }}</dd>
+            {% if object.comment %}
+            <dt class="col-sm-3">Комментарий</dt>
+            <dd class="col-sm-9">{{ object.comment }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+<!-- Табличная часть -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-table text-orange"></i> Табличная часть
+    </div>
+    <div class="card-body p-0">
+        {% if items %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Статья затрат</th>
+                        <th>Вид затрат</th>
+                        <th class="text-end">Цена, ₽</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="text-muted">{{ forloop.counter }}</td>
+                        <td>{{ item.cost_item.get_full_path }}</td>
+                        <td>
+                            <span class="badge {% if item.cost_type == 'acquisition' %}bg-primary{% else %}bg-info text-dark{% endif %}">
+                                {{ item.get_cost_type_display }}
+                            </span>
+                        </td>
+                        <td class="text-end fw-medium">{{ item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3">Табличная часть пуста</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'cpd_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Назад к списку
+    </a>
+    <a href="{% url 'prices_register' %}?counterparty={{ object.counterparty.pk }}" class="btn btn-outline-info btn-sm ms-2">
+        <i class="bi bi-table"></i> Регистр цен контрагента
+    </a>
+</div>
+{% endblock %}

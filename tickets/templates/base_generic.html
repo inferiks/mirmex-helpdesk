@@ -82,6 +82,75 @@
                 {% endif %}
                 {% endif %}
 
+                <!-- ИС: ИТ-Аутсорсинг — Подсистемы -->
+                <div class="nav-section-title">ИС: ИТ-Аутсорсинг</div>
+                <div class="nav-section">
+                    <a href="{% url 'outsourcing_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'outsourcing_dashboard' %}active{% endif %}">
+                        <i class="bi bi-building"></i>
+                        <span>ИС — Главная</span>
+                    </a>
+                </div>
+
+                <!-- Подсистема: Планирование -->
+                <div class="nav-section-title">Планирование</div>
+                <div class="nav-section">
+                    <a href="{% url 'value_proposition_list' %}" class="nav-item {% if 'value_proposition' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-lightbulb"></i>
+                        <span>Ценностные предложения</span>
+                    </a>
+                    <a href="{% url 'nomenclature_list' %}" class="nav-item {% if 'nomenclature' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-card-list"></i>
+                        <span>Номенклатура</span>
+                    </a>
+                </div>
+
+                <!-- Подсистема: Клиенты -->
+                <div class="nav-section-title">Клиенты</div>
+                <div class="nav-section">
+                    <a href="{% url 'client_list' %}" class="nav-item {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-person-lines-fill"></i>
+                        <span>Клиенты</span>
+                    </a>
+                    <a href="{% url 'competitor_list' %}" class="nav-item {% if 'competitor' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-flag"></i>
+                        <span>Конкуренты</span>
+                    </a>
+                </div>
+
+                <!-- Подсистема: Бизнес-процессы -->
+                <div class="nav-section-title">Бизнес-процессы</div>
+                <div class="nav-section">
+                    <a href="{% url 'counterparty_list' %}" class="nav-item {% if 'counterparty' in request.resolver_match.url_name and 'prices' not in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-briefcase"></i>
+                        <span>Контрагенты</span>
+                    </a>
+                    <a href="{% url 'cpd_list' %}" class="nav-item {% if 'cpd' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-receipt"></i>
+                        <span>Цены контрагентов</span>
+                    </a>
+                    <a href="{% url 'prices_register' %}" class="nav-item {% if request.resolver_match.url_name == 'prices_register' %}active{% endif %}">
+                        <i class="bi bi-table"></i>
+                        <span>Регистр цен</span>
+                    </a>
+                </div>
+
+                <!-- Подсистема: Доходы и расходы -->
+                <div class="nav-section-title">Доходы и расходы</div>
+                <div class="nav-section">
+                    <a href="{% url 'cost_item_list' %}" class="nav-item {% if 'cost_item' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-list-nested"></i>
+                        <span>Статьи затрат</span>
+                    </a>
+                    <a href="{% url 'ced_list' %}" class="nav-item {% if 'ced' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-calculator"></i>
+                        <span>Расчёт кап. затрат</span>
+                    </a>
+                    <a href="{% url 'capital_expenses_report' %}" class="nav-item {% if request.resolver_match.url_name == 'capital_expenses_report' %}active{% endif %}">
+                        <i class="bi bi-pie-chart"></i>
+                        <span>Структура затрат</span>
+                    </a>
+                </div>
+
                 <div class="nav-section-title">Аккаунт</div>
                 <div class="nav-section">
                     <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">

@@ -1,0 +1,159 @@
+{% extends "base_generic.html" %}
+
+{% block title %}ИС: ИТ-Аутсорсинг{% endblock %}
+{% block page_title %}Информационная система ИТ-Аутсорсинг{% endblock %}
+{% block page_subtitle %}Главная страница — обзор данных{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <!-- Статистика справочников -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="bi bi-journal-bookmark"></i> Планирование
+                </h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fff3e0">
+                            <div class="fw-bold fs-4 text-warning">{{ value_propositions_count }}</div>
+                            <div class="small text-muted">Ценн. предложений</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#e8f5e9">
+                            <div class="fw-bold fs-4 text-success">{{ nomenclature_count }}</div>
+                            <div class="small text-muted">Позиций номенклатуры</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="bi bi-people"></i> Клиенты
+                </h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#e3f2fd">
+                            <div class="fw-bold fs-4 text-primary">{{ clients_count }}</div>
+                            <div class="small text-muted">Клиентов</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fce4ec">
+                            <div class="fw-bold fs-4 text-danger">{{ competitors_count }}</div>
+                            <div class="small text-muted">Конкурентов</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-3 text-muted">
+                    <i class="bi bi-calculator"></i> Затраты
+                </h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#f3e5f5">
+                            <div class="fw-bold fs-4" style="color:#7b1fa2">{{ cost_items_count }}</div>
+                            <div class="small text-muted">Статей затрат</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#e0f2f1">
+                            <div class="fw-bold fs-4 text-teal">{{ counterparties_count }}</div>
+                            <div class="small text-muted">Контрагентов</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Документы -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-receipt text-orange"></i> Последние «Цены контрагентов»</span>
+                <a href="{% url 'cpd_list' %}" class="btn btn-sm btn-outline-secondary">Все</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_cpd %}
+                <div class="list-group list-group-flush">
+                    {% for doc in recent_cpd %}
+                    <a href="{% url 'cpd_detail' doc.pk %}" class="list-group-item list-group-item-action px-3 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-medium">№{{ doc.number }}</span>
+                            <span class="text-muted small">{{ doc.date|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="text-muted small">{{ doc.counterparty }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-2"></i>
+                    <p class="mt-2">Документов пока нет</p>
+                    <a href="{% url 'cpd_create' %}" class="btn btn-sm btn-orange">Создать</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calculator text-orange"></i> Последние расчёты затрат</span>
+                <a href="{% url 'ced_list' %}" class="btn btn-sm btn-outline-secondary">Все</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_ced %}
+                <div class="list-group list-group-flush">
+                    {% for doc in recent_ced %}
+                    <a href="{% url 'ced_detail' doc.pk %}" class="list-group-item list-group-item-action px-3 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-medium">РКЗ №{{ doc.number }}</span>
+                            <span class="text-muted small">{{ doc.date|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="text-muted small">{{ doc.value_proposition }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-2"></i>
+                    <p class="mt-2">Документов пока нет</p>
+                    <a href="{% url 'ced_create' %}" class="btn btn-sm btn-orange">Создать</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые ссылки -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-lightning-charge text-orange"></i> Быстрые действия
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-auto"><a href="{% url 'nomenclature_create' %}?is_group=0" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus"></i> Добавить номенклатуру</a></div>
+            <div class="col-auto"><a href="{% url 'client_create' %}" class="btn btn-outline-success btn-sm"><i class="bi bi-plus"></i> Добавить клиента</a></div>
+            <div class="col-auto"><a href="{% url 'competitor_create' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-plus"></i> Добавить конкурента</a></div>
+            <div class="col-auto"><a href="{% url 'cpd_create' %}" class="btn btn-outline-warning btn-sm"><i class="bi bi-plus"></i> Новые цены контрагента</a></div>
+            <div class="col-auto"><a href="{% url 'ced_create' %}" class="btn btn-outline-info btn-sm"><i class="bi bi-plus"></i> Расчёт затрат</a></div>
+            <div class="col-auto"><a href="{% url 'capital_expenses_report' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-bar-chart"></i> Отчёт по затратам</a></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

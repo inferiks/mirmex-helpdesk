@@ -1,0 +1,91 @@
+{% extends "base_generic.html" %}
+
+{% block title %}{{ object.name }}{% endblock %}
+{% block page_title %}{{ object.name }}{% endblock %}
+{% block page_subtitle %}Карточка клиента{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Реквизиты</span>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'client_edit' object.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <a href="{% url 'client_delete' object.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Наименование</dt>
+                    <dd class="col-sm-8">{{ object.name }}</dd>
+                    {% if object.contact_person %}
+                    <dt class="col-sm-4">Контактное лицо</dt>
+                    <dd class="col-sm-8">{{ object.contact_person }}</dd>
+                    {% endif %}
+                    {% if object.phone %}
+                    <dt class="col-sm-4">Телефон</dt>
+                    <dd class="col-sm-8">{{ object.phone }}</dd>
+                    {% endif %}
+                    {% if object.email %}
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">{{ object.email }}</dd>
+                    {% endif %}
+                    {% if object.address %}
+                    <dt class="col-sm-4">Адрес</dt>
+                    <dd class="col-sm-8">{{ object.address }}</dd>
+                    {% endif %}
+                    <dt class="col-sm-4">Добавлен</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+                    {% if object.note %}
+                    <dt class="col-sm-4">Примечание</dt>
+                    <dd class="col-sm-8"><a href="{{ object.note }}" target="_blank" rel="noopener">{{ object.note }}</a></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-diagram-3 text-orange"></i> Потребительские сегменты
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_b2b|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_b2b %}class="text-muted"{% endif %}>B2B</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_krasnodar|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_krasnodar %}class="text-muted"{% endif %}>г. Краснодар</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_rto|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_rto %}class="text-muted"{% endif %}>РТО</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_small_business|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_small_business %}class="text-muted"{% endif %}>Малый бизнес</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_medium_business|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_medium_business %}class="text-muted"{% endif %}>Средний бизнес</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-{{ object.segment_b2g|yesno:'check-circle-fill text-success,x-circle text-muted' }}"></i>
+                        <span {% if not object.segment_b2g %}class="text-muted"{% endif %}>B2G (госсектор)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<a href="{% url 'client_list' %}" class="btn btn-outline-secondary btn-sm mt-2">
+    <i class="bi bi-arrow-left"></i> Назад к списку
+</a>
+{% endblock %}

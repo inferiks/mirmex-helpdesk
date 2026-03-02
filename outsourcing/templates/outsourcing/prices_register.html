@@ -1,0 +1,75 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Регистр цен контрагентов{% endblock %}
+{% block page_title %}Регистр сведений: Цены контрагентов{% endblock %}
+{% block page_subtitle %}Актуальные цены по контрагентам и статьям затрат{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form method="get" class="d-flex gap-2">
+        <select name="counterparty" class="form-select form-select-sm">
+            <option value="">— Все контрагенты —</option>
+            {% for cp in counterparties %}
+            <option value="{{ cp.pk }}" {% if selected_counterparty == cp.pk|stringformat:'s' %}selected{% endif %}>
+                {{ cp.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-funnel"></i> Фильтр
+        </button>
+    </form>
+    <a href="{% url 'cpd_create' %}" class="btn btn-orange btn-sm">
+        <i class="bi bi-plus-lg"></i> Ввести цены
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if entries %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Контрагент</th>
+                        <th>Статья затрат</th>
+                        <th>Вид затрат</th>
+                        <th class="text-end">Цена, ₽</th>
+                        <th>Дата актуальности</th>
+                        <th>Документ-источник</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.counterparty }}</td>
+                        <td>{{ entry.cost_item.get_full_path }}</td>
+                        <td>
+                            <span class="badge {% if entry.cost_type == 'acquisition' %}bg-primary{% else %}bg-info text-dark{% endif %}">
+                                {{ entry.get_cost_type_display }}
+                            </span>
+                        </td>
+                        <td class="text-end fw-medium">{{ entry.price }}</td>
+                        <td class="text-muted small">{{ entry.date|date:"d.m.Y" }}</td>
+                        <td>
+                            {% if entry.document %}
+                            <a href="{% url 'cpd_detail' entry.document.pk %}" class="text-decoration-none small">
+                                №{{ entry.document.number }}
+                            </a>
+                            {% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 py-2 text-muted small">Записей в регистре: {{ entries|length }}</div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-table fs-1"></i>
+            <p class="mt-2">Регистр пуст. <a href="{% url 'cpd_create' %}">Введите цены контрагентов</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Контрагенты{% endblock %}
+{% block page_title %}Справочник: Контрагенты{% endblock %}
+{% block page_subtitle %}Поставщики и арендодатели ресурсов{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form method="get" class="d-flex gap-2">
+        <input type="text" name="q" class="form-control form-control-sm" placeholder="Поиск..." value="{{ search_query }}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{% url 'counterparty_create' %}" class="btn btn-orange btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить контрагента
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if counterparties %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Наименование</th>
+                        <th>ИНН</th>
+                        <th>Телефон / Email</th>
+                        <th>Адрес</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cp in counterparties %}
+                    <tr>
+                        <td>
+                            <div class="fw-medium">{{ cp.name }}</div>
+                            {% if cp.website %}
+                            <a href="{{ cp.website }}" target="_blank" rel="noopener" class="text-muted small">
+                                <i class="bi bi-globe"></i> {{ cp.website|truncatechars:30 }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ cp.inn|default:"—" }}</td>
+                        <td>
+                            {% if cp.phone %}<div class="small"><i class="bi bi-telephone text-muted"></i> {{ cp.phone }}</div>{% endif %}
+                            {% if cp.email %}<div class="small"><i class="bi bi-envelope text-muted"></i> {{ cp.email }}</div>{% endif %}
+                        </td>
+                        <td class="text-muted small">{{ cp.address|default:"—"|truncatechars:40 }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'counterparty_edit' cp.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'counterparty_delete' cp.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-briefcase fs-1"></i>
+            <p class="mt-2">Контрагентов пока нет. <a href="{% url 'counterparty_create' %}">Добавить</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

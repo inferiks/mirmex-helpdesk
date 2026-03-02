@@ -1,0 +1,72 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Конкуренты{% endblock %}
+{% block page_title %}Справочник: Конкуренты{% endblock %}
+{% block page_subtitle %}Список конкурирующих организаций{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form method="get" class="d-flex gap-2">
+        <input type="text" name="q" class="form-control form-control-sm" placeholder="Поиск..." value="{{ search_query }}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{% url 'competitor_create' %}" class="btn btn-orange btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить конкурента
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if competitors %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Адрес</th>
+                        <th>Телефон</th>
+                        <th>Сайт / Примечание</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for competitor in competitors %}
+                    <tr>
+                        <td class="fw-medium">{{ competitor.name }}</td>
+                        <td class="text-muted small">{{ competitor.address|default:"—" }}</td>
+                        <td class="text-muted small">{{ competitor.phone|default:"—" }}</td>
+                        <td>
+                            {% if competitor.website %}
+                            <a href="{{ competitor.website }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-globe"></i> Сайт
+                            </a>
+                            {% endif %}
+                            {% if competitor.note and not competitor.website %}
+                            <a href="{{ competitor.note }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-link-45deg"></i> Источник
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'competitor_edit' competitor.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'competitor_delete' competitor.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 py-2 text-muted small">Найдено: {{ competitors|length }}</div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-flag fs-1"></i>
+            <p class="mt-2">Конкуренты не найдены. <a href="{% url 'competitor_create' %}">Добавить</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

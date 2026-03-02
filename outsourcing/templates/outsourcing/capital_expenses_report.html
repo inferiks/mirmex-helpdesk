@@ -1,0 +1,117 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Структура капитальных затрат{% endblock %}
+{% block page_title %}Отчёт: Структура капитальных затрат{% endblock %}
+{% block page_subtitle %}Капитальные затраты в разрезе ценностных предложений{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+      <label class="fw-medium mb-0">Ценностные предложения:</label>
+      <div class="d-flex flex-wrap gap-2">
+        {% for vp in all_vps %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="vp" value="{{ vp.pk }}" id="vp_{{ vp.pk }}"
+            {% if vp.pk in selected_vps %}checked{% endif %}>
+          <label class="form-check-label" for="vp_{{ vp.pk }}">{{ vp.name }}</label>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-sm btn-orange"><i class="bi bi-funnel"></i> Сформировать</button>
+      {% if selected_vps %}
+      <a href="{% url 'capital_expenses_report' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x"></i> Сбросить</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+{% if rows %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span class="fw-semibold"><i class="bi bi-table text-orange"></i> Структура капитальных затрат</span>
+    <span class="text-muted small">Строк: {{ rows|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Статья затрат</th>
+            <th>Вид затрат</th>
+            {% for vp in value_propositions %}<th class="text-end">{{ vp.name }}</th>{% endfor %}
+            <th class="text-end" style="background:#f59e0b;color:#000">ИТОГО, &#8381;</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td><small class="text-muted">{{ row.cost_item.get_full_path }}</small></td>
+            <td>
+              <span class="badge {% if row.cost_type == 'acquisition' %}bg-primary{% else %}bg-info text-dark{% endif %}">
+                {{ row.cost_type_display }}
+              </span>
+            </td>
+            {% for val in row.vp_values %}
+            <td class="text-end">
+              {% if val %}<span class="fw-medium">{{ val }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            {% endfor %}
+            <td class="text-end fw-bold table-warning">{{ row.row_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-warning">
+          <tr>
+            <td colspan="2" class="fw-bold text-end">ИТОГО:</td>
+            {% for ct in col_totals %}<td class="text-end fw-bold">{{ ct }}</td>{% endfor %}
+            <td class="text-end fw-bold fs-5" style="color:#FF6600">{{ grand_total }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-2">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body">
+        <div class="fw-bold fs-3 text-orange">{{ grand_total }}</div>
+        <div class="text-muted">Общая сумма затрат, &#8381;</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body">
+        <div class="fw-bold fs-3 text-primary">{{ rows|length }}</div>
+        <div class="text-muted">Строк в отчёте</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body">
+        <div class="fw-bold fs-3 text-success">{{ value_propositions|length }}</div>
+        <div class="text-muted">Ценностных предложений</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% elif all_vps %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body text-center text-muted py-5">
+    <i class="bi bi-bar-chart fs-1"></i>
+    <p class="mt-2">Нет данных. Создайте <a href="{% url 'ced_create' %}">документы расчёта затрат</a></p>
+  </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body text-center text-muted py-5">
+    <i class="bi bi-lightbulb fs-1"></i>
+    <p class="mt-2">Сначала создайте <a href="{% url 'value_proposition_create' %}">ценностные предложения</a></p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

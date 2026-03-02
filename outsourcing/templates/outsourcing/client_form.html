@@ -1,0 +1,126 @@
+{% extends "base_generic.html" %}
+
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Справочник Клиенты{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium">Наименование *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Контактное лицо</label>
+                            {{ form.contact_person }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Телефон</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Адрес</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+
+                    <!-- Потребительские сегменты -->
+                    <hr class="my-4">
+                    <h6 class="fw-semibold mb-3">
+                        <i class="bi bi-diagram-3 text-orange"></i> Потребительские сегменты
+                        <span class="text-muted fw-normal small">(пример: B2B; г. Краснодар; РТО; малый бизнес)</span>
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_b2b }}
+                                <label class="form-check-label" for="{{ form.segment_b2b.id_for_label }}">
+                                    <span class="badge bg-primary">B2B</span> Корпоративный клиент
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_krasnodar }}
+                                <label class="form-check-label" for="{{ form.segment_krasnodar.id_for_label }}">
+                                    <span class="badge bg-info">г. Краснодар</span> Местный
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_rto }}
+                                <label class="form-check-label" for="{{ form.segment_rto.id_for_label }}">
+                                    <span class="badge bg-success">РТО</span> Розничная торговля
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_small_business }}
+                                <label class="form-check-label" for="{{ form.segment_small_business.id_for_label }}">
+                                    <span class="badge bg-warning text-dark">Малый бизнес</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_medium_business }}
+                                <label class="form-check-label" for="{{ form.segment_medium_business.id_for_label }}">
+                                    <span class="badge bg-secondary">Средний бизнес</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.segment_b2g }}
+                                <label class="form-check-label" for="{{ form.segment_b2g.id_for_label }}">
+                                    <span class="badge bg-danger">B2G</span> Госсектор
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">
+                            Примечание
+                            <span class="text-muted fw-normal small">(ссылка на web-ресурс)</span>
+                        </label>
+                        {{ form.note }}
+                        <div class="form-text">Укажите ссылку на сайт, на котором размещена информация о клиенте</div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-orange">
+                            <i class="bi bi-check-lg"></i> Сохранить
+                        </button>
+                        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('input[type=text], input[type=email], input[type=url], textarea').forEach(el => {
+    if (!el.classList.contains('form-check-input')) {
+        el.classList.add('form-control');
+    }
+});
+</script>
+{% endblock %}

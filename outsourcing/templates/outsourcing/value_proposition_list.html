@@ -1,0 +1,44 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Ценностные предложения{% endblock %}
+{% block page_title %}Ценностные предложения{% endblock %}
+{% block page_subtitle %}Блок бизнес-модели Остервальдера{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'value_proposition_create' %}" class="btn btn-orange btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for vp in value_propositions %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="fw-semibold mb-1">{{ vp.name }}</h6>
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'value_proposition_edit' vp.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'value_proposition_delete' vp.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                    </div>
+                </div>
+                {% if vp.target_segment %}
+                <span class="badge bg-info text-dark mb-2">{{ vp.target_segment }}</span>
+                {% endif %}
+                {% if vp.description %}
+                <p class="text-muted small mb-0">{{ vp.description|truncatechars:150 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-lightbulb fs-1"></i>
+            <p class="mt-2">Ценностных предложений нет. <a href="{% url 'value_proposition_create' %}">Создать</a></p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Статьи затрат{% endblock %}
+{% block page_title %}Справочник: Статьи затрат{% endblock %}
+{% block page_subtitle %}Иерархический справочник капитальных затрат{% endblock %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'cost_item_list' %}">Статьи затрат</a></li>
+        {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item">
+            <a href="{% url 'cost_item_list' %}?parent={{ crumb.pk }}">{{ crumb.name }}</a>
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        {% if current_parent %}
+        <span class="badge bg-warning text-dark fs-6 me-2"><i class="bi bi-folder2-open"></i> {{ current_parent.name }}</span>
+        {% endif %}
+        <span class="text-muted">{{ items|length }} элемент(ов)</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'cost_item_create' %}{% if current_parent %}?parent={{ current_parent.pk }}{% endif %}&is_group=1" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-folder-plus"></i> Новая группа
+        </a>
+        <a href="{% url 'cost_item_create' %}{% if current_parent %}?parent={{ current_parent.pk }}{% endif %}" class="btn btn-orange btn-sm">
+            <i class="bi bi-plus-lg"></i> Добавить статью
+        </a>
+    </div>
+</div>
+
+<!-- Подсказка по структуре -->
+{% if not current_parent %}
+<div class="alert alert-info alert-sm mb-3 py-2">
+    <i class="bi bi-info-circle"></i>
+    Рекомендуемая структура: <strong>1. Здания</strong> → 1.1 Офис, 1.2 Склад &nbsp;|&nbsp;
+    <strong>2. Оборудование</strong> → 2.1 ПК, 2.2 Принтер &nbsp;|&nbsp;
+    <strong>3. ПО</strong> &nbsp;|&nbsp; <strong>4. Услуги</strong>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if items %}
+        <div class="list-group list-group-flush">
+            {% for item in items %}
+            <div class="list-group-item d-flex align-items-center justify-content-between px-3 py-2">
+                <div class="d-flex align-items-center gap-2">
+                    {% if item.is_group %}
+                    <a href="{% url 'cost_item_list' %}?parent={{ item.pk }}" class="text-decoration-none">
+                        <i class="bi bi-folder-fill text-warning fs-5"></i>
+                        <span class="fw-semibold text-dark ms-1">{{ item.name }}</span>
+                    </a>
+                    <span class="badge bg-light text-secondary">Группа</span>
+                    {% else %}
+                    <i class="bi bi-dash-circle text-secondary fs-5"></i>
+                    <div>
+                        {% if item.code %}
+                        <span class="badge bg-light text-secondary me-1">{{ item.code }}</span>
+                        {% endif %}
+                        <span class="fw-medium">{{ item.name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'cost_item_edit' item.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'cost_item_delete' item.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-list-nested fs-1"></i>
+            <p class="mt-2">Статей затрат нет. <a href="{% url 'cost_item_create' %}">Добавить</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

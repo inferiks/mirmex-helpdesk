@@ -1,0 +1,220 @@
+{% extends "base_generic.html" %}
+
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Документ: Расчёт капитальных затрат{% endblock %}
+
+{% block content %}
+<form method="post" id="ced-form">
+    {% csrf_token %}
+
+    <!-- Шапка документа -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold">
+            <i class="bi bi-file-earmark-text text-orange"></i> Шапка документа
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Дата *</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-medium">Ценностное предложение *</label>
+                    {{ form.value_proposition }}
+                    {% if form.value_proposition.errors %}<div class="text-danger small">{{ form.value_proposition.errors }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-medium">Комментарий</label>
+                    {{ form.comment }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Табличная часть -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-calculator text-orange"></i> Табличная часть: Статьи затрат</span>
+            <button type="button" id="add-row" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus"></i> Добавить строку
+            </button>
+        </div>
+        <div class="card-body p-0">
+            {{ formset.management_form }}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="ced-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Статья затрат</th>
+                            <th>Вид затрат</th>
+                            <th>Контрагент</th>
+                            <th>Цена, ₽</th>
+                            <th>Кол-во</th>
+                            <th class="text-end">Сумма, ₽</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="formset-body">
+                        {% for item_form in formset %}
+                        <tr class="formset-row">
+                            <td class="row-num text-muted">{{ forloop.counter }}</td>
+                            <td>{% for f in item_form.visible_fields %}{% if f.name == 'cost_item' %}{{ f }}{% endif %}{% endfor %}</td>
+                            <td>{% for f in item_form.visible_fields %}{% if f.name == 'cost_type' %}{{ f }}{% endif %}{% endfor %}</td>
+                            <td>{% for f in item_form.visible_fields %}{% if f.name == 'counterparty' %}{{ f }}{% endif %}{% endfor %}</td>
+                            <td>{% for f in item_form.visible_fields %}{% if f.name == 'price' %}{{ f }}{% endif %}{% endfor %}</td>
+                            <td>{% for f in item_form.visible_fields %}{% if f.name == 'quantity' %}{{ f }}{% endif %}{% endfor %}</td>
+                            <td class="text-end fw-medium total-cell">—</td>
+                            <td>
+                                {% for f in item_form.hidden_fields %}{{ f }}{% endfor %}
+                                {% if item_form.instance.pk %}
+                                <div class="form-check">
+                                    {{ item_form.DELETE }}
+                                    <label class="form-check-label text-danger small">
+                                        <i class="bi bi-trash"></i>
+                                    </label>
+                                </div>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="6" class="text-end fw-bold">ИТОГО:</td>
+                            <td class="text-end fw-bold text-orange" id="grand-total">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-orange">
+            <i class="bi bi-check-lg"></i> Сохранить и провести
+        </button>
+        <a href="{% url 'ced_list' %}" class="btn btn-outline-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Данные из регистра цен для автозаполнения
+const pricesData = {{ counterparties_json|safe }};
+
+// Apply Bootstrap classes
+function applyStyles(row) {
+    row.querySelectorAll('select').forEach(el => el.classList.add('form-select', 'form-select-sm'));
+    row.querySelectorAll('input[type=text], input[type=number], input[type=date], textarea').forEach(el => el.classList.add('form-control', 'form-control-sm'));
+}
+
+document.querySelectorAll('.formset-row').forEach(row => applyStyles(row));
+
+// Calculate totals
+function calcTotal(row) {
+    const price = parseFloat(row.querySelector('[name$=price]')?.value || 0);
+    const qty = parseFloat(row.querySelector('[name$=quantity]')?.value || 1);
+    const total = isNaN(price) || isNaN(qty) ? 0 : price * qty;
+    row.querySelector('.total-cell').textContent = total.toFixed(2);
+    return total;
+}
+
+function updateGrandTotal() {
+    let grand = 0;
+    document.querySelectorAll('.formset-row').forEach(row => {
+        grand += calcTotal(row);
+    });
+    document.getElementById('grand-total').textContent = grand.toFixed(2);
+}
+
+document.addEventListener('input', e => {
+    if (e.target.name && (e.target.name.includes('price') || e.target.name.includes('quantity'))) {
+        updateGrandTotal();
+    }
+});
+
+// Auto-fill price from register when cost_item or cost_type changes
+document.addEventListener('change', e => {
+    if (!e.target.name) return;
+    const row = e.target.closest('.formset-row');
+    if (!row) return;
+
+    if (e.target.name.includes('cost_item') || e.target.name.includes('cost_type')) {
+        const costItemSelect = row.querySelector('[name$=cost_item]');
+        const costTypeSelect = row.querySelector('[name$=cost_type]');
+        if (!costItemSelect || !costTypeSelect) return;
+
+        const key = `${costItemSelect.value}_${costTypeSelect.value}`;
+        if (pricesData[key]) {
+            const d = pricesData[key];
+            const priceInput = row.querySelector('[name$=price]');
+            const cpSelect = row.querySelector('[name$=counterparty]');
+            if (priceInput && !priceInput.value) priceInput.value = d.price;
+            if (cpSelect && !cpSelect.value) {
+                for (let opt of cpSelect.options) {
+                    if (opt.value == d.counterparty_id) {
+                        opt.selected = true;
+                        break;
+                    }
+                }
+            }
+            updateGrandTotal();
+        }
+    }
+});
+
+// Dynamic rows
+const totalForms = document.querySelector('[name$=TOTAL_FORMS]');
+let formCount = parseInt(totalForms.value);
+
+document.getElementById('add-row').addEventListener('click', () => {
+    const body = document.getElementById('formset-body');
+    const rows = body.querySelectorAll('.formset-row');
+    const lastRow = rows[rows.length - 1];
+    const newRow = lastRow.cloneNode(true);
+
+    newRow.querySelectorAll('input, select').forEach(input => {
+        const name = input.name.replace(/-\d+-/, `-${formCount}-`);
+        const id = input.id ? input.id.replace(/-\d+-/, `-${formCount}-`) : '';
+        input.name = name;
+        if (id) input.id = id;
+        if (input.type !== 'hidden') input.value = input.tagName === 'SELECT' ? '' : '';
+        if (input.tagName === 'SELECT') {
+            Array.from(input.options).forEach(opt => opt.selected = false);
+        }
+    });
+
+    const lastCell = newRow.querySelector('td:last-child');
+    lastCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-x"></i></button>';
+    lastCell.querySelector('.remove-row').addEventListener('click', e => {
+        e.target.closest('tr').remove();
+        updateGrandTotal();
+    });
+
+    newRow.querySelector('.total-cell').textContent = '—';
+    body.appendChild(newRow);
+    formCount++;
+    totalForms.value = formCount;
+    applyStyles(newRow);
+});
+
+document.querySelectorAll('.remove-row').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.target.closest('tr').remove();
+        updateGrandTotal();
+    });
+});
+
+// Initial total calc
+updateGrandTotal();
+</script>
+{% endblock %}

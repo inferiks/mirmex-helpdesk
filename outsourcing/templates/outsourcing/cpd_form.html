@@ -1,0 +1,150 @@
+{% extends "base_generic.html" %}
+
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Документ: Цены контрагентов{% endblock %}
+
+{% block content %}
+<form method="post" id="cpd-form">
+    {% csrf_token %}
+
+    <!-- Шапка документа -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold">
+            <i class="bi bi-file-earmark-text text-orange"></i> Шапка документа
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Дата *</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-medium">Контрагент *</label>
+                    {{ form.counterparty }}
+                    {% if form.counterparty.errors %}<div class="text-danger small">{{ form.counterparty.errors }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-medium">Комментарий</label>
+                    {{ form.comment }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Табличная часть -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-table text-orange"></i> Табличная часть: Цены</span>
+            <button type="button" id="add-row" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus"></i> Добавить строку
+            </button>
+        </div>
+        <div class="card-body p-0">
+            {{ formset.management_form }}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="items-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Статья затрат</th>
+                            <th>Вид затрат</th>
+                            <th>Цена, ₽</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="formset-body">
+                        {% for item_form in formset %}
+                        <tr class="formset-row {% if item_form.instance.pk %}existing{% endif %}">
+                            <td class="row-num text-muted">{{ forloop.counter }}</td>
+                            <td>
+                                {% for field in item_form.visible_fields %}
+                                    {% if field.name == 'cost_item' %}{{ field }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for field in item_form.visible_fields %}
+                                    {% if field.name == 'cost_type' %}{{ field }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for field in item_form.visible_fields %}
+                                    {% if field.name == 'price' %}{{ field }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for field in item_form.hidden_fields %}{{ field }}{% endfor %}
+                                {% if item_form.instance.pk %}
+                                <div class="form-check">
+                                    {{ item_form.DELETE }}
+                                    <label class="form-check-label text-danger small" for="{{ item_form.DELETE.id_for_label }}">
+                                        <i class="bi bi-trash"></i>
+                                    </label>
+                                </div>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-orange">
+            <i class="bi bi-check-lg"></i> Сохранить и провести
+        </button>
+        <a href="{% url 'cpd_list' %}" class="btn btn-outline-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add Bootstrap classes
+document.querySelectorAll('#cpd-form select').forEach(el => el.classList.add('form-select', 'form-select-sm'));
+document.querySelectorAll('#cpd-form input[type=text], #cpd-form input[type=number], #cpd-form input[type=date], #cpd-form textarea').forEach(el => el.classList.add('form-control', 'form-control-sm'));
+
+// Dynamic formset rows
+const totalForms = document.querySelector('[name$=TOTAL_FORMS]');
+let formCount = parseInt(totalForms.value);
+
+document.getElementById('add-row').addEventListener('click', () => {
+    const body = document.getElementById('formset-body');
+    const rows = body.querySelectorAll('.formset-row');
+    const lastRow = rows[rows.length - 1];
+    const newRow = lastRow.cloneNode(true);
+
+    newRow.querySelectorAll('input, select').forEach(input => {
+        const name = input.name.replace(/-\d+-/, `-${formCount}-`);
+        const id = input.id.replace(/-\d+-/, `-${formCount}-`);
+        input.name = name;
+        input.id = id;
+        if (input.type !== 'hidden') input.value = '';
+    });
+
+    // Add remove button
+    const lastCell = newRow.querySelector('td:last-child');
+    lastCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-x"></i></button>';
+    lastCell.querySelector('.remove-row').addEventListener('click', e => e.target.closest('tr').remove());
+
+    body.appendChild(newRow);
+    formCount++;
+    totalForms.value = formCount;
+
+    // Apply styles to new row
+    newRow.querySelectorAll('select').forEach(el => el.classList.add('form-select', 'form-select-sm'));
+    newRow.querySelectorAll('input[type=text], input[type=number]').forEach(el => el.classList.add('form-control', 'form-control-sm'));
+});
+
+document.querySelectorAll('.remove-row').forEach(btn => {
+    btn.addEventListener('click', e => e.target.closest('tr').remove());
+});
+</script>
+{% endblock %}
