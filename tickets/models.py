@@ -36,6 +36,7 @@ class Equipment(models.Model):
     ]
 
     serial = models.CharField(max_length=100, unique=True, verbose_name='Серийный номер')
+    name = models.CharField(max_length=200, blank=True, verbose_name='Название')
     model = models.CharField(max_length=200, verbose_name='Модель')
     equipment_type = models.CharField(
         max_length=20,
@@ -73,6 +74,8 @@ class Equipment(models.Model):
         return False
 
     def __str__(self):
+        if self.name:
+            return f"{self.name} — {self.model} ({self.serial})"
         return f"{self.model} ({self.serial})"
 
 

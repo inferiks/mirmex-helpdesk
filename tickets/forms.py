@@ -136,7 +136,7 @@ class CommentForm(forms.ModelForm):
 class EquipmentForm(forms.ModelForm):
     class Meta:
         model = Equipment
-        fields = ['model', 'serial', 'equipment_type', 'location', 'status',
+        fields = ['name', 'model', 'serial', 'equipment_type', 'location', 'status',
                   'purchased_at', 'warranty_until', 'notes']
         widgets = {
             'purchased_at': forms.DateInput(attrs={'type': 'date'}),
