@@ -21,6 +21,16 @@
                         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                     {% endif %}
 
+                    <!-- Name -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Название</label>
+                        <input type="text" name="name" id="{{ form.name.id_for_label }}"
+                               class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                               value="{{ form.name.value|default:'' }}"
+                               placeholder="Например: Принтер, Ноутбук, Сервер">
+                        {% if form.name.errors %}<div class="invalid-feedback">{{ form.name.errors }}</div>{% endif %}
+                    </div>
+
                     <!-- Model + Serial -->
                     <div class="row mb-3">
                         <div class="col-md-7">

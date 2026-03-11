@@ -42,3 +42,5 @@ coverage.xml
 */migrations/*.pyc
 */migrations/*.py
 */migrations/__pycache__/
+
+.claude/
